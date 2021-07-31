@@ -83,13 +83,11 @@ public class MainController {
     }
 
     public void openWindow(String filename) {
-        FXMLLoader loader = new FXMLLoader();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource(filename));
         try {
-            Pane pane = loader.load(getClass().getResource(filename));
-            Stage stage = new Stage();
+            Stage stage = loader.load();
             stage.initModality(Modality.WINDOW_MODAL);
             stage.initOwner(mainWindowPane.getScene().getWindow());
-            stage.setScene(new Scene(pane));
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
