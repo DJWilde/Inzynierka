@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.Scene?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.stage.Stage?>
+
+<Stage xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.djwilde.inzynierka.MainController">
+   <scene>
+      <Scene>
+         <root>
+            <BorderPane fx:id="mainWindowPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0">
+               <left>
+                  <TreeView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
+               </left>
+               <center>
+                  <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+                     <children>
+                        <ImageView fx:id="plotImageView" fitHeight="600.0" fitWidth="1080.0" nodeOrientation="INHERIT" pickOnBounds="true" preserveRatio="true" VBox.vgrow="ALWAYS" />
+                        <TextArea maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+                     </children>
+                  </VBox>
+               </center>
+               <top>
+                  <VBox prefHeight="60.0" prefWidth="1280.0" BorderPane.alignment="CENTER">
+                     <children>
+                        <MenuBar fx:id="menuBar">
+                          <menus>
+                            <Menu mnemonicParsing="false" text="Plik">
+                              <items>
+                                  <MenuItem fx:id="newCommandMenuItem" mnemonicParsing="false" text="Nowe polecenie" />
+                                  <MenuItem fx:id="closeAppMenu" mnemonicParsing="false" text="Zamknij" />
+                              </items>
+                            </Menu>
+                            <Menu mnemonicParsing="false" text="Edycja">
+                              <items>
+                                <MenuItem mnemonicParsing="false" text="Usuń" />
+                              </items>
+                            </Menu>
+                            <Menu mnemonicParsing="false" text="Pomoc">
+                              <items>
+                                <MenuItem fx:id="aboutMenu" mnemonicParsing="false" text="O programie" />
+                              </items>
+                            </Menu>
+                          </menus>
+                        </MenuBar>
+                        <ToolBar prefHeight="40.0" prefWidth="200.0">
+                          <items>
+                              <Button fx:id="toolbarNewPlotButton" mnemonicParsing="false" text="Nowy wykres" />
+                            <Button fx:id="toolbarNewCommandButton" mnemonicParsing="false" text="Nowe polecenie" />
+                              <Button fx:id="toolbarNewScriptButton" mnemonicParsing="false" text="Nowy skrypt" />
+                          </items>
+                        </ToolBar>
+                     </children>
+                  </VBox>
+               </top>
+            </BorderPane>
+         </root>
+      </Scene>
+   </scene>
+</Stage>
