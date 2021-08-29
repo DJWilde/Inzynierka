@@ -4,16 +4,21 @@ import javafx.concurrent.Task;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
+import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.reactfx.Subscription;
 
 import java.time.Duration;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SyntaxHighlightConfig {
+    private static final SyntaxHighlightConfig instance = new SyntaxHighlightConfig(getInstance().codeArea);
+
     private static final String[] GNUPLOT_KEYWORDS = new String[] {
             "break", "cd", "call", "clear", "continue", "do", "evaluate", "exit", "fit", "help", "history", "if", "for",
             "import", "load", "pause", "plot", "print", "printerr", "pwd", "quit", "raise", "refresh", "replot", "reread",
@@ -40,6 +45,14 @@ public class SyntaxHighlightConfig {
     private CodeArea codeArea;
     private ExecutorService executorService;
 
+    private SyntaxHighlightConfig(CodeArea codeArea) {
+        this.codeArea = codeArea;
+    }
+
+    public static SyntaxHighlightConfig getInstance() {
+        return instance;
+    }
+
     public void highlightSyntax() {
         executorService = Executors.newSingleThreadExecutor();
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
@@ -52,6 +65,8 @@ public class SyntaxHighlightConfig {
                 return Optional.empty();
             }
         }).subscribe(this::applyHighlights);
+
+        highlightSyntaxSubscription.unsubscribe();
     }
 
     private Task<StyleSpans<Collection<String>>> applySyntaxHighlightAsync() {
@@ -72,6 +87,23 @@ public class SyntaxHighlightConfig {
     }
 
     private static StyleSpans<Collection<String>> computeHighlights(String text) {
-        return null;
+        Matcher matcher = PATTERN.matcher(text);
+        int lastEnd = 0;
+        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+        while (matcher.find()) {
+            String styleClass = matcher.group("KEYWORD") != null ? "keyword" :
+                            matcher.group("PARENTHESIS") != null ? "parenthesis" :
+                            matcher.group("CURLYBRACE") != null ? "curlybrace" :
+                            matcher.group("BRACKETS") != null ? "brackets" :
+                            matcher.group("STRING") != null ? "string" :
+                            matcher.group("COMMENT") != null ? "comment" : null;
+
+            spansBuilder.add(Collections.emptyList(), matcher.start() - lastEnd);
+            spansBuilder.add(Collections.singleton(styleClass), matcher.end() - matcher.start());
+            lastEnd = matcher.end();
+        }
+
+        spansBuilder.add(Collections.emptyList(), text.length() - lastEnd);
+        return spansBuilder.create();
     }
 }

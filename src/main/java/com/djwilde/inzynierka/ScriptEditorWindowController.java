@@ -1,5 +1,8 @@
 package com.djwilde.inzynierka;
 
+import com.djwilde.inzynierka.config.SyntaxHighlightConfig;
+import com.panayotis.gnuplot.JavaPlot;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -8,6 +11,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -148,6 +152,8 @@ public class ScriptEditorWindowController {
         scriptEditorScene.getAccelerators().put(undoShortcut, undoShortcutRunner);
         scriptEditorScene.getAccelerators().put(redoShortcut, redoShortcutRunner);
         scriptEditorScene.getAccelerators().put(executeShortcut, executeScriptRunner);
+
+        scriptCodeArea.setOnKeyPressed(keyEvent -> SyntaxHighlightConfig.getInstance().highlightSyntax());
     }
 
     public void showNewWindow() {
@@ -164,7 +170,6 @@ public class ScriptEditorWindowController {
         );
         File scriptFile = fileChooser.showOpenDialog(scriptBorderPane.getScene().getWindow());
         if (scriptFile != null) {
-            // Tu będzie wczytanie skryptu do codeArea
             openScript(scriptFile);
             System.out.println("Wczytano");
         }
@@ -206,6 +211,8 @@ public class ScriptEditorWindowController {
     }
 
     public void executeScript() {
+        JavaPlot javaPlot = new JavaPlot();
+        saveScriptToFile(new File("test.plt"));
 
     }
 

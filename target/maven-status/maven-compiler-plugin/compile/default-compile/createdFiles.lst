@@ -1,2 +1,4 @@
-com\djwilde\inzynierka\ScriptEditorWindowController.class
+com\djwilde\inzynierka\config\SyntaxHighlightConfig$1.class
 com\djwilde\inzynierka\NewPlotWindowController.class
+com\djwilde\inzynierka\ScriptEditorWindowController.class
+com\djwilde\inzynierka\config\SyntaxHighlightConfig.class
