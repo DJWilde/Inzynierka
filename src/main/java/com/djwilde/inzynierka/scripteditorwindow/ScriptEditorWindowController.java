@@ -1,4 +1,4 @@
-package com.djwilde.inzynierka;
+package com.djwilde.inzynierka.scripteditorwindow;
 
 import com.djwilde.inzynierka.config.SyntaxHighlightConfig;
 import com.panayotis.gnuplot.JavaPlot;
@@ -8,10 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -80,6 +77,8 @@ public class ScriptEditorWindowController {
 
     @FXML
     private CodeArea scriptCodeArea;
+
+    private Clipboard systemClipboard;
 
     public void initialize() {
         KeyCombination newScriptShortcut = new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN);
@@ -153,7 +152,7 @@ public class ScriptEditorWindowController {
         scriptEditorScene.getAccelerators().put(redoShortcut, redoShortcutRunner);
         scriptEditorScene.getAccelerators().put(executeShortcut, executeScriptRunner);
 
-        scriptCodeArea.setOnKeyPressed(keyEvent -> SyntaxHighlightConfig.getInstance().highlightSyntax());
+//        scriptCodeArea.setOnKeyPressed(keyEvent -> SyntaxHighlightConfig.getInstance().highlightSyntax());
     }
 
     public void showNewWindow() {
@@ -199,11 +198,21 @@ public class ScriptEditorWindowController {
     }
 
     public void cutAction() {
+        String text = getSelectedText();
 
+        ClipboardContent clipboardContent = new ClipboardContent();
+        clipboardContent.putString(text);
+        systemClipboard.setContent(clipboardContent);
+
+        scriptCodeArea.deleteText(scriptCodeArea.getSelection());
     }
 
     public void copyAction() {
+        String text = getSelectedText();
 
+        ClipboardContent clipboardContent = new ClipboardContent();
+        clipboardContent.putString(text);
+        systemClipboard.setContent(clipboardContent);
     }
 
     public void pasteAction() {
@@ -214,6 +223,10 @@ public class ScriptEditorWindowController {
         JavaPlot javaPlot = new JavaPlot();
         saveScriptToFile(new File("test.plt"));
 
+    }
+
+    private String getSelectedText() {
+        return (scriptCodeArea.getSelectedText() != null) ? scriptCodeArea.getSelectedText() : null;
     }
 
     private void openScript(File file) {

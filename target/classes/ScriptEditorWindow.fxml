@@ -12,7 +12,7 @@
 <?import javafx.stage.Stage?>
 <?import javafx.scene.Scene?>
 
-<Stage xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.djwilde.inzynierka.ScriptEditorWindowController">
+<Stage xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.djwilde.inzynierka.scripteditorwindow.ScriptEditorWindowController">
     <scene>
         <Scene fx:id="scriptEditorScene">
             <BorderPane fx:id="scriptBorderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"

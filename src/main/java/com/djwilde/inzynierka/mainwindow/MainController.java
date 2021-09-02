@@ -1,4 +1,4 @@
-package com.djwilde.inzynierka;
+package com.djwilde.inzynierka.mainwindow;
 
 import com.djwilde.inzynierka.threads.LaunchGnuplotThread;
 import com.djwilde.inzynierka.threads.LoadPictureThread;
