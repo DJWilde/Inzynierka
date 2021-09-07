@@ -1,7 +1,10 @@
 C:\Users\Patryk K\IdeaProjects\InzynierkaMaven\src\main\java\com\djwilde\inzynierka\Main.java
-C:\Users\Patryk K\IdeaProjects\InzynierkaMaven\src\main\java\com\djwilde\inzynierka\AboutWindowController.java
-C:\Users\Patryk K\IdeaProjects\InzynierkaMaven\src\main\java\com\djwilde\inzynierka\MainController.java
-C:\Users\Patryk K\IdeaProjects\InzynierkaMaven\src\main\java\com\djwilde\inzynierka\ScriptEditorWindowController.java
-C:\Users\Patryk K\IdeaProjects\InzynierkaMaven\src\main\java\com\djwilde\inzynierka\NewPlotWindowController.java
+C:\Users\Patryk K\IdeaProjects\InzynierkaMaven\src\main\java\com\djwilde\inzynierka\windows\newplotwindow\NewPlotWindowController.java
+C:\Users\Patryk K\IdeaProjects\InzynierkaMaven\src\main\java\com\djwilde\inzynierka\config\SyntaxHighlightConfig.java
+C:\Users\Patryk K\IdeaProjects\InzynierkaMaven\src\main\java\com\djwilde\inzynierka\windows\scripteditorwindow\ScriptEditorWindowController.java
+C:\Users\Patryk K\IdeaProjects\InzynierkaMaven\src\main\java\com\djwilde\inzynierka\helpers\ScriptHelper.java
+C:\Users\Patryk K\IdeaProjects\InzynierkaMaven\src\main\java\com\djwilde\inzynierka\windows\mainwindow\MainController.java
 C:\Users\Patryk K\IdeaProjects\InzynierkaMaven\src\main\java\com\djwilde\inzynierka\threads\LoadPictureThread.java
+C:\Users\Patryk K\IdeaProjects\InzynierkaMaven\src\main\java\com\djwilde\inzynierka\config\GnuplotConstants.java
 C:\Users\Patryk K\IdeaProjects\InzynierkaMaven\src\main\java\com\djwilde\inzynierka\threads\LaunchGnuplotThread.java
+C:\Users\Patryk K\IdeaProjects\InzynierkaMaven\src\main\java\com\djwilde\inzynierka\windows\aboutwindow\AboutWindowController.java

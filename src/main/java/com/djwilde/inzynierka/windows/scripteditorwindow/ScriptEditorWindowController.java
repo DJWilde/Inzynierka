@@ -1,21 +1,19 @@
-package com.djwilde.inzynierka.scripteditorwindow;
+package com.djwilde.inzynierka.windows.scripteditorwindow;
 
-import com.djwilde.inzynierka.config.SyntaxHighlightConfig;
+import com.djwilde.inzynierka.helpers.ScriptHelper;
 import com.panayotis.gnuplot.JavaPlot;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextArea;
 import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 import org.fxmisc.richtext.CodeArea;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
@@ -222,7 +220,7 @@ public class ScriptEditorWindowController {
     public void executeScript() {
         JavaPlot javaPlot = new JavaPlot();
         saveScriptToFile(new File("test.plt"));
-
+        ScriptHelper.executeScriptFromAnotherProcess("test.plt");
     }
 
     private String getSelectedText() {
@@ -242,12 +240,6 @@ public class ScriptEditorWindowController {
     }
 
     private void saveScriptToFile(File file) {
-        try {
-            PrintWriter writer = new PrintWriter(file);
-            writer.println(scriptCodeArea.getText());
-            writer.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        ScriptHelper.saveScript(file, scriptCodeArea.getText());
     }
 }

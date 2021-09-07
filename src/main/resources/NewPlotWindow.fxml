@@ -22,7 +22,7 @@
 <?import javafx.stage.Stage?>
 
 <?import org.fxmisc.richtext.CodeArea?>
-<Stage xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.djwilde.inzynierka.newplotwindow.NewPlotWindowController">
+<Stage xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.djwilde.inzynierka.windows.newplotwindow.NewPlotWindowController">
     <scene>
         <Scene>
             <BorderPane fx:id="newPlotBorderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1">

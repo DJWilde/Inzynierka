@@ -1,4 +1,4 @@
-package com.djwilde.inzynierka.newplotwindow;
+package com.djwilde.inzynierka.windows.newplotwindow;
 
 import com.djwilde.inzynierka.config.GnuplotConstants;
 import javafx.collections.FXCollections;

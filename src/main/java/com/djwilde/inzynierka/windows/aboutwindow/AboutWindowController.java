@@ -1,4 +1,4 @@
-package com.djwilde.inzynierka.aboutwindow;
+package com.djwilde.inzynierka.windows.aboutwindow;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
