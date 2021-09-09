@@ -1,7 +1,8 @@
-com\djwilde\inzynierka\newplotwindow\NewPlotWindowController.class
 com\djwilde\inzynierka\config\SyntaxHighlightConfig$1.class
-com\djwilde\inzynierka\mainwindow\MainController.class
+com\djwilde\inzynierka\windows\aboutwindow\AboutWindowController.class
+com\djwilde\inzynierka\helpers\ScriptHelper.class
 com\djwilde\inzynierka\config\GnuplotConstants.class
-com\djwilde\inzynierka\aboutwindow\AboutWindowController.class
-com\djwilde\inzynierka\scripteditorwindow\ScriptEditorWindowController.class
+com\djwilde\inzynierka\windows\mainwindow\MainController.class
+com\djwilde\inzynierka\windows\newplotwindow\NewPlotWindowController.class
+com\djwilde\inzynierka\windows\scripteditorwindow\ScriptEditorWindowController.class
 com\djwilde\inzynierka\config\SyntaxHighlightConfig.class

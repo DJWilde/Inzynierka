@@ -150,6 +150,8 @@ public class ScriptEditorWindowController {
         scriptEditorScene.getAccelerators().put(redoShortcut, redoShortcutRunner);
         scriptEditorScene.getAccelerators().put(executeShortcut, executeScriptRunner);
 
+        systemClipboard = Clipboard.getSystemClipboard();
+
 //        scriptCodeArea.setOnKeyPressed(keyEvent -> SyntaxHighlightConfig.getInstance().highlightSyntax());
     }
 
