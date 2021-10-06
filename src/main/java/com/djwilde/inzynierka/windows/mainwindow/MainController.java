@@ -31,12 +31,15 @@ public class MainController {
     private Button toolbarNewCommandButton;
     @FXML
     private Button toolbarNewScriptButton;
+    @FXML
+    private Button editDataButton;
 
     public void initialize() {
         newCommandMenuItem.setOnAction(actionEvent -> showNewCommandWindow());
         toolbarNewCommandButton.setOnAction(actionEvent -> showNewCommandWindow());
         toolbarNewPlotButton.setOnAction(actionEvent -> openWindow("/NewPlotWindow.fxml"));
         toolbarNewScriptButton.setOnAction(actionEvent -> openWindow("/ScriptEditorWindow.fxml"));
+        editDataButton.setOnAction(actionEvent -> openWindow("/TableEditorWindow.fxml"));
         aboutMenu.setOnAction(actionEvent -> openWindow("/aboutDialog.fxml"));
 
         closeAppMenu.setOnAction(actionEvent -> System.exit(0));

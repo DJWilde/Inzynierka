@@ -57,6 +57,7 @@
                               <Button fx:id="toolbarNewPlotButton" mnemonicParsing="false" text="Nowy wykres" />
                             <Button fx:id="toolbarNewCommandButton" mnemonicParsing="false" text="Nowe polecenie" />
                               <Button fx:id="toolbarNewScriptButton" mnemonicParsing="false" text="Nowy skrypt" />
+                              <Button fx:id="editDataButton" mnemonicParsing="false" text="Edytor tabel" />
                           </items>
                         </ToolBar>
                      </children>

@@ -1,5 +1,6 @@
 package com.djwilde.inzynierka.windows.scripteditorwindow;
 
+import com.djwilde.inzynierka.helpers.FileDialogInputOutput;
 import com.djwilde.inzynierka.helpers.ScriptHelper;
 import com.panayotis.gnuplot.JavaPlot;
 import javafx.fxml.FXML;
@@ -13,11 +14,9 @@ import org.fxmisc.richtext.CodeArea;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Scanner;
 
-public class ScriptEditorWindowController {
+public class ScriptEditorWindowController implements FileDialogInputOutput {
     @FXML
     private BorderPane scriptBorderPane;
     @FXML
@@ -220,7 +219,6 @@ public class ScriptEditorWindowController {
     }
 
     public void executeScript() {
-        JavaPlot javaPlot = new JavaPlot();
         saveScriptToFile(new File("test.plt"));
         ScriptHelper.executeScriptFromAnotherProcess("test.plt");
     }
