@@ -32,6 +32,7 @@
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 
+<?import javafx.scene.Scene?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
@@ -41,11 +42,9 @@
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
-
 <?import javafx.stage.Stage?>
-<?import javafx.scene.Scene?>
-<Stage xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
-       fx:controller="com.djwilde.inzynierka.windows.tableeditorwindow.TableEditorWindowController">
+
+<Stage xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.djwilde.inzynierka.windows.tableeditorwindow.TableEditorWindowController">
     <scene>
         <Scene>
           <VBox prefHeight="720.0" prefWidth="1280.0">
@@ -93,6 +92,8 @@
                 <top>
                   <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                     <items>
+                           <Button fx:id="createTableButton" mnemonicParsing="false" text="Utwórz tabelę" />
+                           <Button fx:id="addNewColumnButton" mnemonicParsing="false" text="Nowa kolumna" />
                       <Button fx:id="loadDataButton" mnemonicParsing="false" text="Wczytaj dane" />
                       <Button fx:id="saveDataButton" mnemonicParsing="false" text="Zapisz dane" />
                     </items>
