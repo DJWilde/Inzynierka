@@ -123,8 +123,6 @@ public class TableEditorWindowController implements FileDialogInputOutput {
     public void addColumn() {
         TableColumn<ObservableList<String>, String> newColumn = new TableColumn<>("Nowa kolumna");
         newColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        int noOfColumns = dataTableView.getColumns().size();
-        System.out.println(noOfColumns);
     }
 
     public void showOpenFileDialog() {
@@ -138,7 +136,6 @@ public class TableEditorWindowController implements FileDialogInputOutput {
         if (dataFile != null) {
             openFile(dataFile);
         }
-
     }
 
     public void showSaveFileDialog() {
@@ -170,6 +167,7 @@ public class TableEditorWindowController implements FileDialogInputOutput {
             }
 
             br.close();
+            displayLoadedData();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -198,64 +196,27 @@ public class TableEditorWindowController implements FileDialogInputOutput {
         }
     }
 
-//    private void openFile(File file) {
-//        try {
-//            FileInputStream fileInputStream = new FileInputStream(file);
-//            DataInputStream dataInputStream = new DataInputStream(fileInputStream);
-//            BufferedReader br = new BufferedReader(new InputStreamReader(dataInputStream));
-//            String strLine;
-//            String[] dataLineTokens = null;
-//            while ((strLine = br.readLine()) != null) {
-//                if (strLine.startsWith("#")) {
-//                    continue;
-//                }
-//                dataLineTokens = strLine.split(" ");
-//                DataRecord dataRecord = new DataRecord(dataLineTokens);
-//                LoadedData.getInstance().getLoadedData().add(dataRecord);
-//            }
-//            assert dataLineTokens != null;
-//            loadedDataInfo.setNoOfColumns(dataLineTokens.length);
-//            dataInputStream.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    private void saveFile(File file) {
-//        List<DataRecord> dataRecords = LoadedData.getInstance().getLoadedData();
-//        try {
-//            FileOutputStream fileOutputStream = new FileOutputStream(file);
-//            DataOutputStream dataOutputStream = new DataOutputStream(fileOutputStream);
-//            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(dataOutputStream));
-//            for (DataRecord record : dataRecords) {
-//                StringBuilder stringBuilder = new StringBuilder();
-//                for (int i = 0; i < record.getDataColumns().size(); i++) {
-//                    stringBuilder.append(record.getDataColumns().get(i));
-//                    if (i != record.getDataColumns().size() - 1) {
-//                        stringBuilder.append(" ");
-//                    }
-//                }
-//                stringBuilder.append("\n");
-//                bw.write(stringBuilder.toString());
-//            }
-//            bw.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
+    private void displayLoadedData() {
+        for (int i = 0; i < data.get(0).size(); i++) {
+            TableColumn<ObservableList<String>, String> column = new TableColumn<>("Kolumna " + (i + 1));
+            column.setCellFactory(TextFieldTableCell.forTableColumn());
+            column.setCellValueFactory(new PropertyValueFactory<>(data.get(i).get(i)));
+            int index = i;
+            column.setOnEditCommit(observableListStringCellEditEvent -> {
+                ObservableList<String> tableRow = observableListStringCellEditEvent.getRowValue();
+                String newValue = observableListStringCellEditEvent.getNewValue();
+                tableRow.set(index, newValue);
+                System.out.println(data);
+            });
+            dataTableView.getColumns().add(column);
+        }
+        for (ObservableList<String> list : data) {
+            dataTableView.getItems().add(list);
+        }
 
-//    private void displayLoadedData() {
-//        for (int i = 0; i < loadedDataInfo.getNoOfColumns(); i++) {
-//            TableColumn<String, DataRecord> column = new TableColumn<>();
-//            column.setCellValueFactory(new PropertyValueFactory<>("Kolumna " + (i + 1)));
-//            dataTableView.getColumns().add(column);
-//        }
-//
-//        List<DataRecord> records = LoadedData.getInstance().getLoadedData();
-//        for (DataRecord record : records) {
-//            dataTableView.getItems().add(record);
-//        }
-//    }
+        dataTableView.refresh();
+        System.out.println(dataTableView.getItems());
+    }
 
     private static class LoadedDataInfo {
         private int noOfColumns;
