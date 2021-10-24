@@ -24,10 +24,7 @@ import javafx.util.Callback;
 import javafx.util.Pair;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class TableEditorWindowController implements FileDialogInputOutput {
@@ -139,7 +136,7 @@ public class TableEditorWindowController implements FileDialogInputOutput {
         );
         File dataFile = fileChooser.showOpenDialog(tableEditorBorderPane.getScene().getWindow());
         if (dataFile != null) {
-            System.out.println("Otwarto plik");
+            openFile(dataFile);
         }
 
     }
@@ -153,55 +150,99 @@ public class TableEditorWindowController implements FileDialogInputOutput {
         );
         File dataFile = fileChooser.showSaveDialog(tableEditorBorderPane.getScene().getWindow());
         if (dataFile != null) {
-            System.out.println("Zapisano do pliku");
+            saveFile(dataFile);
         }
     }
 
     private void openFile(File file) {
         try {
-            FileInputStream fileInputStream = new FileInputStream(file);
-            DataInputStream dataInputStream = new DataInputStream(fileInputStream);
-            BufferedReader br = new BufferedReader(new InputStreamReader(dataInputStream));
-            String strLine;
-            String[] dataLineTokens = null;
-            while ((strLine = br.readLine()) != null) {
-                if (strLine.startsWith("#")) {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                if (line.startsWith("#")) {
                     continue;
                 }
-                dataLineTokens = strLine.split(" ");
-                DataRecord dataRecord = new DataRecord(dataLineTokens);
-                LoadedData.getInstance().getLoadedData().add(dataRecord);
+                String[] tokens = line.split("\\s");
+                ObservableList<String> row = FXCollections.observableArrayList();
+                row.addAll(Arrays.asList(tokens));
+                data.add(row);
             }
-            assert dataLineTokens != null;
-            loadedDataInfo.setNoOfColumns(dataLineTokens.length);
-            dataInputStream.close();
+
+            br.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private void saveFile(File file) {
-        List<DataRecord> dataRecords = LoadedData.getInstance().getLoadedData();
         try {
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
-            DataOutputStream dataOutputStream = new DataOutputStream(fileOutputStream);
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(dataOutputStream));
-            for (DataRecord record : dataRecords) {
-                StringBuilder stringBuilder = new StringBuilder();
-                for (int i = 0; i < record.getDataColumns().size(); i++) {
-                    stringBuilder.append(record.getDataColumns().get(i));
-                    if (i != record.getDataColumns().size() - 1) {
-                        stringBuilder.append(" ");
-                    }
-                }
-                stringBuilder.append("\n");
-                bw.write(stringBuilder.toString());
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file));
+            ObservableList<TableColumn<ObservableList<String>, ?>> tableNames = dataTableView.getColumns();
+            StringBuilder stringBuilder = new StringBuilder();
+
+            for (TableColumn<ObservableList<String>, ?> table : tableNames) {
+                stringBuilder.append(table).append(" ");
             }
-            bw.close();
+            bufferedWriter.write("# " + stringBuilder + "\n");
+            for (ObservableList<String> row : data) {
+                for (String col : row) {
+                    bufferedWriter.write(col + " ");
+                }
+                bufferedWriter.write("\n");
+            }
+
+            bufferedWriter.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+//    private void openFile(File file) {
+//        try {
+//            FileInputStream fileInputStream = new FileInputStream(file);
+//            DataInputStream dataInputStream = new DataInputStream(fileInputStream);
+//            BufferedReader br = new BufferedReader(new InputStreamReader(dataInputStream));
+//            String strLine;
+//            String[] dataLineTokens = null;
+//            while ((strLine = br.readLine()) != null) {
+//                if (strLine.startsWith("#")) {
+//                    continue;
+//                }
+//                dataLineTokens = strLine.split(" ");
+//                DataRecord dataRecord = new DataRecord(dataLineTokens);
+//                LoadedData.getInstance().getLoadedData().add(dataRecord);
+//            }
+//            assert dataLineTokens != null;
+//            loadedDataInfo.setNoOfColumns(dataLineTokens.length);
+//            dataInputStream.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    private void saveFile(File file) {
+//        List<DataRecord> dataRecords = LoadedData.getInstance().getLoadedData();
+//        try {
+//            FileOutputStream fileOutputStream = new FileOutputStream(file);
+//            DataOutputStream dataOutputStream = new DataOutputStream(fileOutputStream);
+//            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(dataOutputStream));
+//            for (DataRecord record : dataRecords) {
+//                StringBuilder stringBuilder = new StringBuilder();
+//                for (int i = 0; i < record.getDataColumns().size(); i++) {
+//                    stringBuilder.append(record.getDataColumns().get(i));
+//                    if (i != record.getDataColumns().size() - 1) {
+//                        stringBuilder.append(" ");
+//                    }
+//                }
+//                stringBuilder.append("\n");
+//                bw.write(stringBuilder.toString());
+//            }
+//            bw.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
 //    private void displayLoadedData() {
 //        for (int i = 0; i < loadedDataInfo.getNoOfColumns(); i++) {
