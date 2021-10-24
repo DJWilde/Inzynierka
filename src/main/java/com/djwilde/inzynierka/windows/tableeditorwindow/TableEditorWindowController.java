@@ -4,6 +4,7 @@ import com.djwilde.inzynierka.helpers.FileDialogInputOutput;
 import com.djwilde.inzynierka.threads.LaunchGnuplotThread;
 import com.djwilde.inzynierka.threads.LoadPictureThread;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableListValue;
 import javafx.beans.value.ObservableValue;
@@ -25,6 +26,7 @@ import javafx.util.Pair;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -44,7 +46,7 @@ public class TableEditorWindowController implements FileDialogInputOutput {
 
     private final LoadedDataInfo loadedDataInfo = new LoadedDataInfo();
 
-    private List<DataRecord> loadedData;
+    private final ObservableList<ObservableList<String>> data = FXCollections.observableArrayList();
 
     public void initialize() {
         if (LoadedData.getInstance().getLoadedData().size() == 0) {
@@ -96,19 +98,27 @@ public class TableEditorWindowController implements FileDialogInputOutput {
 
         Optional<Pair<String, String>> result = createTableDialog.showAndWait();
         result.ifPresent(pair -> {
+            for (int i = 0; i < Integer.parseInt(noOfRows.getText()); i++) {
+                ObservableList<String> tableRow = FXCollections.observableArrayList();
+                for (int j = 0; j < Integer.parseInt(noOfColumns.getText()); j++) {
+                    tableRow.add("");
+                }
+                data.add(tableRow);
+            }
             for (int i = 0; i < Integer.parseInt(noOfColumns.getText()); i++) {
                 TableColumn<ObservableList<String>, String> column = new TableColumn<>("Kolumna " + (i + 1));
                 column.setCellFactory(TextFieldTableCell.forTableColumn());
                 int index = i;
-                column.setOnEditCommit(observableListStringCellEditEvent ->
-                        observableListStringCellEditEvent.getTableView().getItems().get(observableListStringCellEditEvent.getTablePosition().getRow())
-                                .set(index, observableListStringCellEditEvent.getNewValue()));
+                column.setOnEditCommit(observableListStringCellEditEvent -> {
+                    ObservableList<String> tableRow = observableListStringCellEditEvent.getRowValue();
+                    String newValue = observableListStringCellEditEvent.getNewValue();
+                    tableRow.set(index, newValue);
+                    System.out.println(data);
+                });
                 dataTableView.getColumns().add(column);
             }
-            for (int i = 0; i < Integer.parseInt(noOfRows.getText()); i++) {
-                List<String> strings = new ArrayList<>(dataTableView.getColumns().size());
-                ObservableList<String> observableStrings = FXCollections.observableArrayList(strings);
-                dataTableView.getItems().add(observableStrings);
+            for (ObservableList<String> list : data) {
+                dataTableView.getItems().add(list);
             }
         });
     }
