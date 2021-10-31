@@ -1,18 +1,9 @@
 package com.djwilde.inzynierka.windows.tableeditorwindow;
 
 import com.djwilde.inzynierka.helpers.FileDialogInputOutput;
-import com.djwilde.inzynierka.threads.LaunchGnuplotThread;
-import com.djwilde.inzynierka.threads.LoadPictureThread;
-import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableListValue;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -20,12 +11,10 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
-import javafx.util.Callback;
 import javafx.util.Pair;
 
 import java.io.*;
 import java.util.*;
-import java.util.function.Consumer;
 
 public class TableEditorWindowController implements FileDialogInputOutput {
     @FXML
@@ -35,13 +24,13 @@ public class TableEditorWindowController implements FileDialogInputOutput {
     @FXML
     private Button addNewColumnButton;
     @FXML
+    private Button addNewRowButton;
+    @FXML
     private Button loadDataButton;
     @FXML
     private Button saveDataButton;
     @FXML
     private TableView<ObservableList<String>> dataTableView;
-
-    private final LoadedDataInfo loadedDataInfo = new LoadedDataInfo();
 
     private final ObservableList<ObservableList<String>> data = FXCollections.observableArrayList();
 
@@ -56,6 +45,7 @@ public class TableEditorWindowController implements FileDialogInputOutput {
 
         createTableButton.setOnAction(actionEvent -> createTable());
         addNewColumnButton.setOnAction(actionEvent -> addColumn());
+        addNewRowButton.setOnAction(actionEvent -> addRow());
         loadDataButton.setOnAction(actionEvent -> showOpenFileDialog());
         saveDataButton.setOnAction(actionEvent -> showSaveFileDialog());
     }
@@ -121,8 +111,68 @@ public class TableEditorWindowController implements FileDialogInputOutput {
     }
 
     public void addColumn() {
-        TableColumn<ObservableList<String>, String> newColumn = new TableColumn<>("Nowa kolumna");
-        newColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        if (data.size() == 0) {
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Tworzenie tabeli");
+            dialog.setHeaderText("Tworzenie tabeli");
+            dialog.setContentText("Wygląda na to, że tabela jest pusta. Podaj ilość wierszy:");
+
+            Optional<String> result = dialog.showAndWait();
+            result.ifPresent(res -> {
+                for (int i = 0; i < Integer.parseInt(res); i++) {
+                    ObservableList<String> tableRow = FXCollections.observableArrayList();
+                    tableRow.add("");
+                    data.add(tableRow);
+                }
+
+                TableColumn<ObservableList<String>, String> column = new TableColumn<>("Nowa kolumna");
+                column.setCellFactory(TextFieldTableCell.forTableColumn());
+                column.setOnEditCommit(observableListStringCellEditEvent -> {
+                    ObservableList<String> row = observableListStringCellEditEvent.getRowValue();
+                    String newValue = observableListStringCellEditEvent.getNewValue();
+                    System.out.println(dataTableView.getColumns().size());
+                    row.set(0, newValue);
+                    System.out.println(data);
+                });
+                dataTableView.getColumns().add(column);
+                for (ObservableList<String> list : data) {
+                    dataTableView.getItems().add(list);
+                }
+                System.out.println(data);
+            });
+        } else {
+            for (ObservableList<String> dataRow : data) {
+                dataRow.add("");
+            }
+
+            TableColumn<ObservableList<String>, String> newColumn = new TableColumn<>("Nowa kolumna");
+            newColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+            newColumn.setOnEditCommit(observableListStringCellEditEvent -> {
+                ObservableList<String> row = observableListStringCellEditEvent.getRowValue();
+                String newValue = observableListStringCellEditEvent.getNewValue();
+                System.out.println(dataTableView.getColumns().size());
+                row.set(dataTableView.getColumns().size() - 1, newValue);
+                System.out.println(data);
+            });
+            dataTableView.getColumns().add(newColumn);
+        }
+    }
+
+    public void addRow() {
+        if (data.size() == 0) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Brak kolumn");
+            alert.setHeaderText("Błąd");
+            alert.setContentText("Brakuje kolumn w tabeli. Dodaj najpierw kolumnę zanim dodasz nowy wiersz.");
+            alert.showAndWait();
+            return;
+        }
+        ObservableList<String> newRow = FXCollections.observableArrayList();
+        for (var i = 0; i < data.get(0).size(); i++) {
+            newRow.add("");
+        }
+        data.add(newRow);
+        dataTableView.getItems().add(newRow);
     }
 
     public void showOpenFileDialog() {
@@ -166,6 +216,7 @@ public class TableEditorWindowController implements FileDialogInputOutput {
                 data.add(row);
             }
 
+            System.out.println(data);
             br.close();
             displayLoadedData();
         } catch (IOException e) {
@@ -180,7 +231,7 @@ public class TableEditorWindowController implements FileDialogInputOutput {
             StringBuilder stringBuilder = new StringBuilder();
 
             for (TableColumn<ObservableList<String>, ?> table : tableNames) {
-                stringBuilder.append(table).append(" ");
+                stringBuilder.append(table.getText()).append(" ");
             }
             bufferedWriter.write("# " + stringBuilder + "\n");
             for (ObservableList<String> row : data) {
@@ -214,24 +265,6 @@ public class TableEditorWindowController implements FileDialogInputOutput {
             dataTableView.getItems().add(list);
         }
 
-        dataTableView.refresh();
         System.out.println(dataTableView.getItems());
     }
-
-    private static class LoadedDataInfo {
-        private int noOfColumns;
-
-        public LoadedDataInfo() {
-            noOfColumns = 0;
-        }
-
-        public int getNoOfColumns() {
-            return noOfColumns;
-        }
-
-        public void setNoOfColumns(int noOfColumns) {
-            this.noOfColumns = noOfColumns;
-        }
-    }
-
 }

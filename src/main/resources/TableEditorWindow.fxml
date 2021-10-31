@@ -92,8 +92,10 @@
                 <top>
                   <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                     <items>
-                           <Button fx:id="createTableButton" mnemonicParsing="false" text="Utwórz tabelę" />
-                           <Button fx:id="addNewColumnButton" mnemonicParsing="false" text="Nowa kolumna" />
+                      <Button fx:id="createTableButton" mnemonicParsing="false" text="Utwórz tabelę" />
+                      <Button fx:id="addNewColumnButton" mnemonicParsing="false" text="Nowa kolumna" />
+                      <Button fx:id="addNewRowButton" mnemonicParsing="false" text="Nowy wiersz" />
+                      <Button fx:id="editTableButton" mnemonicParsing="false" text="Edycja tabeli" />
                       <Button fx:id="loadDataButton" mnemonicParsing="false" text="Wczytaj dane" />
                       <Button fx:id="saveDataButton" mnemonicParsing="false" text="Zapisz dane" />
                     </items>
