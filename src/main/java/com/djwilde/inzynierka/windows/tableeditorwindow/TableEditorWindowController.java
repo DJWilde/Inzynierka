@@ -1,6 +1,7 @@
 package com.djwilde.inzynierka.windows.tableeditorwindow;
 
 import com.djwilde.inzynierka.helpers.FileDialogInputOutput;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -251,8 +252,9 @@ public class TableEditorWindowController implements FileDialogInputOutput {
         for (int i = 0; i < data.get(0).size(); i++) {
             TableColumn<ObservableList<String>, String> column = new TableColumn<>("Kolumna " + (i + 1));
             column.setCellFactory(TextFieldTableCell.forTableColumn());
-            column.setCellValueFactory(new PropertyValueFactory<>(data.get(i).get(i)));
             int index = i;
+            column.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get(index)));
+
             column.setOnEditCommit(observableListStringCellEditEvent -> {
                 ObservableList<String> tableRow = observableListStringCellEditEvent.getRowValue();
                 String newValue = observableListStringCellEditEvent.getNewValue();
