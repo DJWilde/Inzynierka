@@ -15,6 +15,7 @@ import org.fxmisc.richtext.CodeArea;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import java.util.concurrent.CompletableFuture;
 
 public class ScriptEditorWindowController implements FileDialogInputOutput {
     @FXML
@@ -219,8 +220,15 @@ public class ScriptEditorWindowController implements FileDialogInputOutput {
     }
 
     public void executeScript() {
-        saveScriptToFile(new File("test.plt"));
-        ScriptHelper.executeScriptFromAnotherProcess("test.plt");
+        CompletableFuture<Void> runScriptFuture = CompletableFuture.runAsync(() -> saveScriptToFile(new File("test.plt"))).thenRunAsync(() -> {
+            System.out.println("Zapisano skrypt");
+            ScriptHelper.executeScriptFromAnotherProcess("test.plt");
+        }).thenRunAsync(() -> System.out.println("Wykonano skrypt"));
+
+        CompletableFuture<Void> completableFuture = CompletableFuture.allOf(runScriptFuture);
+
+        completableFuture.join();
+        System.out.println("Ukończono");
     }
 
     private String getSelectedText() {
@@ -228,12 +236,14 @@ public class ScriptEditorWindowController implements FileDialogInputOutput {
     }
 
     private void openScript(File file) {
+        StringBuilder code = new StringBuilder();
         try {
             Scanner scanner = new Scanner(file);
             while (scanner.hasNextLine()) {
-                String code = scanner.nextLine();
-                scriptCodeArea.replaceText(0, 0, code);
+                String line = scanner.nextLine();
+                code.append(line).append("\n");
             }
+            scriptCodeArea.replaceText(code.toString());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
