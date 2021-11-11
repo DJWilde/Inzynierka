@@ -7,9 +7,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
+import javafx.stage.*;
+import org.apache.commons.io.FilenameUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -33,6 +34,13 @@ public class MainController {
     private Button toolbarNewScriptButton;
     @FXML
     private Button editDataButton;
+    @FXML
+    private Button loadCollectionButton;
+
+    @FXML
+    private TabPane tabPane;
+    @FXML
+    private TreeView<String> collectionsTreeView;
 
     public void initialize() {
         newCommandMenuItem.setOnAction(actionEvent -> showNewCommandWindow());
@@ -40,7 +48,18 @@ public class MainController {
         toolbarNewPlotButton.setOnAction(actionEvent -> openWindow("/NewPlotWindow.fxml"));
         toolbarNewScriptButton.setOnAction(actionEvent -> openWindow("/ScriptEditorWindow.fxml"));
         editDataButton.setOnAction(actionEvent -> openWindow("/TableEditorWindow.fxml"));
+        loadCollectionButton.setOnAction(actionEvent -> openCollection(mainWindowPane.getScene().getWindow()));
         aboutMenu.setOnAction(actionEvent -> openWindow("/aboutDialog.fxml"));
+
+        TreeItem<String> rootItem = new TreeItem<>("Nowa kolekcja");
+        rootItem.setExpanded(true);
+        // Testowo!
+        for (int i = 0; i < 5; i++) {
+            TreeItem<String> childItem = new TreeItem<>("Wykres " + (i + 1));
+            rootItem.getChildren().add(childItem);
+        }
+        collectionsTreeView.setRoot(rootItem);
+        collectionsTreeView.setEditable(true);
 
         closeAppMenu.setOnAction(actionEvent -> System.exit(0));
     }
@@ -92,6 +111,36 @@ public class MainController {
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void openCollection(Window window) {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        File selectedDir = directoryChooser.showDialog(window);
+        if (selectedDir != null) {
+            TreeItem<String> treeItem = new TreeItem<>(selectedDir.getName());
+            collectionsTreeView.setRoot(treeItem);
+            for (File file : selectedDir.listFiles()) {
+                createTree(file, treeItem);
+            }
+        }
+    }
+
+    private void createTree(File file, TreeItem<String> rootItem) {
+        if (file.isDirectory()) {
+            TreeItem<String> newRootItem = new TreeItem<>(file.getName());
+            collectionsTreeView.setRoot(newRootItem);
+            for (File f : file.listFiles()) {
+                createTree(f, newRootItem);
+            }
+        } else if ("plt".equals(FilenameUtils.getExtension(file.getName())) || "txt".equals(FilenameUtils.getExtension(file.getName())) ||
+                    "png".equals(FilenameUtils.getExtension(file.getName())) || "jpg".equals(FilenameUtils.getExtension(file.getName()))) {
+            TreeItem<String> newTreeItem = new TreeItem<>(file.getName());
+            // todo
+            // Jeżeli plik jest png lub jpg to wyświetl wykres
+            // Jeżeli plik jest plt to wczytaj go do edytora tekstu
+            // Jeżeli plik jest txt to wczytaj go do edytora tabel
+            rootItem.getChildren().add(newTreeItem);
         }
     }
 

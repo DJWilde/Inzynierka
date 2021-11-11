@@ -5,6 +5,8 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.control.TreeView?>
@@ -18,9 +20,6 @@
       <Scene>
          <root>
             <BorderPane fx:id="mainWindowPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0">
-               <left>
-                  <TreeView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
-               </left>
                <center>
                   <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
                      <children>
@@ -58,11 +57,23 @@
                             <Button fx:id="toolbarNewCommandButton" mnemonicParsing="false" text="Nowe polecenie" />
                               <Button fx:id="toolbarNewScriptButton" mnemonicParsing="false" text="Nowy skrypt" />
                               <Button fx:id="editDataButton" mnemonicParsing="false" text="Edytor tabel" />
+                              <Button fx:id="loadCollectionButton" mnemonicParsing="false" text="Wczytaj kolekcję" />
                           </items>
                         </ToolBar>
                      </children>
                   </VBox>
                </top>
+               <left>
+                  <TabPane fx:id="tabPane" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+                    <tabs>
+                      <Tab text="Twoje kolekcje">
+                           <content>
+                              <TreeView fx:id="collectionsTreeView" prefHeight="200.0" prefWidth="200.0" />
+                           </content>
+                        </Tab>
+                    </tabs>
+                  </TabPane>
+               </left>
             </BorderPane>
          </root>
       </Scene>

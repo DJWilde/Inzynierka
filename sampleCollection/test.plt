@@ -26,7 +26,7 @@ set zrange [ -1.1  : 1.1  ]
 set title "Circle and polygon objects in 3D" font ",20"
 set arrow from 0,0,-1.2 to 0,0,1.2 lw 2 filled
 #
-# Place circles as objects using Cartesian axis coordinates
+# Place circles as objects using Cartesian axis coordinates dddddd
 #
 set object 21 circle at 0,0,0  radius 1.0 fs empty border lc "black" lw 3 front
 set object 22 circle at 0,0,1  radius 0.1 fs transparent solid 0.5 fc "slategray"
@@ -58,3 +58,5 @@ do for [i=1:13] {
 splot sample [u=0:360] '+' using (cos(u)):(0):(sin(u)) lw 2, \
              [u=0:360] '+' using (cos(u)):(sin(u)):(0) lw 2, \
              [u=0:360] '+' using (0):(cos(u)):(sin(u)) lw 2
+
+

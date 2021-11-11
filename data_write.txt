@@ -1,4 +1,42 @@
-# Kolumna 1 Kolumna 2 
+# Kolumna 1 Kolumna 2 Kolumna 3 Kolumna 4 Kolumna 5 Kolumna 6 Kolumna 7 Kolumna 8 Kolumna 9 Kolumna 10 Nowa kolumna Kolumna 1 Kolumna 2 Kolumna 3 Kolumna 4 Kolumna 5 Kolumna 6 Kolumna 7 Kolumna 8 Kolumna 9 Kolumna 10 Kolumna 11 
+           
+ dd  aa        
+  ff        f 
+   gg        
+           
+           
+           
+   ff        
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
 135 1 
 140 2 
 145 4 
