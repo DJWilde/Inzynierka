@@ -143,20 +143,28 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
                 System.out.println(data);
             });
         } else {
-            for (ObservableList<String> dataRow : data) {
-                dataRow.add("");
-            }
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Tworzenie nowej kolumny");
+            dialog.setHeaderText("Nazwa nowej kolumny");
+            dialog.setContentText("Podaj nazwę nowej kolumny:");
 
-            TableColumn<ObservableList<String>, String> newColumn = new TableColumn<>("Nowa kolumna");
-            newColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-            newColumn.setOnEditCommit(observableListStringCellEditEvent -> {
-                ObservableList<String> row = observableListStringCellEditEvent.getRowValue();
-                String newValue = observableListStringCellEditEvent.getNewValue();
-                System.out.println(dataTableView.getColumns().size());
-                row.set(dataTableView.getColumns().size() - 1, newValue);
-                System.out.println(data);
+            Optional<String> result = dialog.showAndWait();
+            result.ifPresent(s -> {
+                for (ObservableList<String> dataRow : data) {
+                    dataRow.add("");
+                }
+
+                TableColumn<ObservableList<String>, String> newColumn = new TableColumn<>(s);
+                newColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+                newColumn.setOnEditCommit(observableListStringCellEditEvent -> {
+                    ObservableList<String> row = observableListStringCellEditEvent.getRowValue();
+                    String newValue = observableListStringCellEditEvent.getNewValue();
+                    System.out.println(dataTableView.getColumns().size());
+                    row.set(dataTableView.getColumns().size() - 1, newValue);
+                    System.out.println(data);
+                });
+                dataTableView.getColumns().add(newColumn);
             });
-            dataTableView.getColumns().add(newColumn);
         }
     }
 

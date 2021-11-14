@@ -58,3 +58,5 @@ do for [i=1:13] {
 splot sample [u=0:360] '+' using (cos(u)):(0):(sin(u)) lw 2, \
              [u=0:360] '+' using (cos(u)):(sin(u)):(0) lw 2, \
              [u=0:360] '+' using (0):(cos(u)):(sin(u)) lw 2
+
+

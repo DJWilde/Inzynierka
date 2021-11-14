@@ -244,9 +244,6 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
                 String line = scanner.nextLine();
                 code.append(line).append("\n");
             }
-            if (scriptCodeArea == null) {
-                scriptCodeArea = new CodeArea();
-            }
             scriptCodeArea.replaceText(code.toString());
         } catch (FileNotFoundException e) {
             e.printStackTrace();

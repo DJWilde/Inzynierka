@@ -3,14 +3,9 @@ package com.djwilde.inzynierka.windows.mainwindow;
 import com.djwilde.inzynierka.threads.LaunchGnuplotThread;
 import com.djwilde.inzynierka.threads.LoadPictureThread;
 import com.djwilde.inzynierka.windows.WindowController;
-import com.djwilde.inzynierka.windows.WindowControllerSupplier;
-import com.djwilde.inzynierka.windows.scripteditorwindow.ScriptEditorWindowController;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.*;
@@ -18,11 +13,6 @@ import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Paths;
-import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -48,7 +38,12 @@ public class MainController {
     @FXML
     private Button editDataButton;
     @FXML
+    private Button newCollectionButton;
+    @FXML
     private Button loadCollectionButton;
+
+    @FXML
+    private TextArea gnuplotOutputTextArea;
 
     @FXML
     private TabPane tabPane;
@@ -63,39 +58,11 @@ public class MainController {
         toolbarNewPlotButton.setOnAction(actionEvent -> openWindow("/NewPlotWindow.fxml", null));
         toolbarNewScriptButton.setOnAction(actionEvent -> openWindow("/ScriptEditorWindow.fxml", null));
         editDataButton.setOnAction(actionEvent -> openWindow("/TableEditorWindow.fxml", null));
+        newCollectionButton.setOnAction(actionEvent -> newCollection());
         loadCollectionButton.setOnAction(actionEvent -> openCollection(mainWindowPane.getScene().getWindow()));
         aboutMenu.setOnAction(actionEvent -> openWindow("/aboutDialog.fxml", null));
 
-        TreeItem<String> rootItem = new TreeItem<>("Nowa kolekcja");
-        rootItem.setExpanded(true);
-        // Testowo!
-        for (int i = 0; i < 5; i++) {
-            TreeItem<String> childItem = new TreeItem<>("Wykres " + (i + 1));
-            rootItem.getChildren().add(childItem);
-        }
-        collectionsTreeView.setRoot(rootItem);
-        collectionsTreeView.setEditable(true);
-
-        collectionsTreeView.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {
-            if (FilenameUtils.getExtension(newValue.getValue()).equals("png") || FilenameUtils.getExtension(newValue.getValue()).equals("jpg")) {
-                System.out.println(getAbsolutePathFromTreeView(newValue.getValue()));
-                Thread loadPictureThread = new Thread(new LoadPictureThread(getAbsolutePathFromTreeView(newValue.getValue()), plotImageView));
-                loadPictureThread.start();
-                try {
-                    loadPictureThread.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } else if (FilenameUtils.getExtension(newValue.getValue()).equals("plt")) {
-                System.out.println(getAbsolutePathFromTreeView(newValue.getValue()));
-                openWindow("/ScriptEditorWindow.fxml", new File(getAbsolutePathFromTreeView(newValue.getValue())));
-                System.out.println("Wybrano plik .plt");
-            } else if (FilenameUtils.getExtension(newValue.getValue()).equals("txt")) {
-                System.out.println(getAbsolutePathFromTreeView(newValue.getValue()));
-                openWindow("/TableEditorWindow.fxml", new File(getAbsolutePathFromTreeView(newValue.getValue())));
-                System.out.println("Wybrano plik .txt");
-            }
-        });
+        gnuplotOutputTextArea.setEditable(false);
 
         closeAppMenu.setOnAction(actionEvent -> System.exit(0));
     }
@@ -140,28 +107,84 @@ public class MainController {
 
     public void openWindow(String filename, File file) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource(filename));
-        if (file != null) {
-            WindowControllerSupplier controllerSupplier = new WindowControllerSupplier();
-            WindowController windowController = controllerSupplier.supplyWindowController(FilenameUtils.getExtension(file.getName()));
-            System.out.println(windowController);
-            windowController.openFile(file);
-        }
         try {
             Stage stage = loader.load();
             stage.initModality(Modality.WINDOW_MODAL);
             stage.initOwner(mainWindowPane.getScene().getWindow());
+            if (file != null) {
+                WindowController windowController = loader.getController();
+                System.out.println(windowController);
+                windowController.openFile(file);
+            }
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    public void newCollection() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Tworzenie nowej kolekcji");
+        dialog.setHeaderText("Nazwa nowej kolekcji");
+        dialog.setContentText("Podaj nazwę nowej kolekcji:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(s -> {
+            File newDir = new File(s);
+            boolean dirCreated = newDir.mkdir();
+            if (dirCreated) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Powiadomienie");
+                alert.setHeaderText("Sukces");
+                alert.setContentText("Pomyślnie utworzono kolekcję.");
+                alert.showAndWait();
+                Tab tab = new Tab(s);
+                tabPane.getTabs().add(tab);
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Błąd");
+                alert.setHeaderText("Błąd");
+                alert.setContentText("Wystąpił błąd podczas tworzenia kolekcji.");
+                alert.showAndWait();
+            }
+        });
+    }
+
     public void openCollection(Window window) {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         File selectedDir = directoryChooser.showDialog(window);
         if (selectedDir != null) {
+            if (tabPane.getTabs().get(0).getText().equals("Twoje kolekcje")) {
+                tabPane.getTabs().remove(0);
+            }
+            Tab tab = new Tab(selectedDir.getName());
+            TreeView<String> tabTreeView = new TreeView<>();
+            tabPane.getTabs().add(tab);
+            tabTreeView.setEditable(true);
+
+            tabTreeView.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {
+                if (FilenameUtils.getExtension(newValue.getValue()).equals("png") || FilenameUtils.getExtension(newValue.getValue()).equals("jpg")) {
+                    System.out.println(getAbsolutePathFromTreeView(newValue.getValue()));
+                    Thread loadPictureThread = new Thread(new LoadPictureThread(getAbsolutePathFromTreeView(newValue.getValue()), plotImageView));
+                    loadPictureThread.start();
+                    try {
+                        loadPictureThread.join();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } else if (FilenameUtils.getExtension(newValue.getValue()).equals("plt")) {
+                    System.out.println(getAbsolutePathFromTreeView(newValue.getValue()));
+                    openWindow("/ScriptEditorWindow.fxml", new File(getAbsolutePathFromTreeView(newValue.getValue())));
+                    System.out.println("Wybrano plik .plt");
+                } else if (FilenameUtils.getExtension(newValue.getValue()).equals("txt")) {
+                    System.out.println(getAbsolutePathFromTreeView(newValue.getValue()));
+                    openWindow("/TableEditorWindow.fxml", new File(getAbsolutePathFromTreeView(newValue.getValue())));
+                    System.out.println("Wybrano plik .txt");
+                }
+            });
+            tab.setContent(tabTreeView);
             TreeItem<String> treeItem = new TreeItem<>(selectedDir.getName());
-            collectionsTreeView.setRoot(treeItem);
+            tabTreeView.setRoot(treeItem);
             for (File file : selectedDir.listFiles()) {
                 createTree(file, treeItem);
                 filePaths.add(file.getAbsolutePath());
@@ -191,10 +214,6 @@ public class MainController {
         } else if ("plt".equals(FilenameUtils.getExtension(file.getName())) || "txt".equals(FilenameUtils.getExtension(file.getName())) ||
                     "png".equals(FilenameUtils.getExtension(file.getName())) || "jpg".equals(FilenameUtils.getExtension(file.getName()))) {
             TreeItem<String> newTreeItem = new TreeItem<>(file.getName());
-            // todo
-            // Jeżeli plik jest png lub jpg to wyświetl wykres
-            // Jeżeli plik jest plt to wczytaj go do edytora tekstu
-            // Jeżeli plik jest txt to wczytaj go do edytora tabel
             rootItem.getChildren().add(newTreeItem);
         }
     }
