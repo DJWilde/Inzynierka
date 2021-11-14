@@ -1,6 +1,7 @@
 package com.djwilde.inzynierka.windows.tableeditorwindow;
 
 import com.djwilde.inzynierka.helpers.FileDialogInputOutput;
+import com.djwilde.inzynierka.windows.WindowController;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -17,7 +18,7 @@ import javafx.util.Pair;
 import java.io.*;
 import java.util.*;
 
-public class TableEditorWindowController implements FileDialogInputOutput {
+public class TableEditorWindowController implements FileDialogInputOutput, WindowController {
     @FXML
     private BorderPane tableEditorBorderPane;
     @FXML
@@ -202,7 +203,7 @@ public class TableEditorWindowController implements FileDialogInputOutput {
         }
     }
 
-    private void openFile(File file) {
+    public void openFile(File file) {
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
             String line;
@@ -225,7 +226,7 @@ public class TableEditorWindowController implements FileDialogInputOutput {
         }
     }
 
-    private void saveFile(File file) {
+    public void saveFile(File file) {
         try {
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file));
             ObservableList<TableColumn<ObservableList<String>, ?>> tableNames = dataTableView.getColumns();

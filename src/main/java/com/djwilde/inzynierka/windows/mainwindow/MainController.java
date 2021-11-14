@@ -2,9 +2,15 @@ package com.djwilde.inzynierka.windows.mainwindow;
 
 import com.djwilde.inzynierka.threads.LaunchGnuplotThread;
 import com.djwilde.inzynierka.threads.LoadPictureThread;
+import com.djwilde.inzynierka.windows.WindowController;
+import com.djwilde.inzynierka.windows.WindowControllerSupplier;
+import com.djwilde.inzynierka.windows.scripteditorwindow.ScriptEditorWindowController;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.*;
@@ -12,6 +18,13 @@ import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
+import java.nio.file.WatchService;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class MainController {
@@ -42,14 +55,16 @@ public class MainController {
     @FXML
     private TreeView<String> collectionsTreeView;
 
+    private final List<String> filePaths = new ArrayList<>();
+
     public void initialize() {
         newCommandMenuItem.setOnAction(actionEvent -> showNewCommandWindow());
         toolbarNewCommandButton.setOnAction(actionEvent -> showNewCommandWindow());
-        toolbarNewPlotButton.setOnAction(actionEvent -> openWindow("/NewPlotWindow.fxml"));
-        toolbarNewScriptButton.setOnAction(actionEvent -> openWindow("/ScriptEditorWindow.fxml"));
-        editDataButton.setOnAction(actionEvent -> openWindow("/TableEditorWindow.fxml"));
+        toolbarNewPlotButton.setOnAction(actionEvent -> openWindow("/NewPlotWindow.fxml", null));
+        toolbarNewScriptButton.setOnAction(actionEvent -> openWindow("/ScriptEditorWindow.fxml", null));
+        editDataButton.setOnAction(actionEvent -> openWindow("/TableEditorWindow.fxml", null));
         loadCollectionButton.setOnAction(actionEvent -> openCollection(mainWindowPane.getScene().getWindow()));
-        aboutMenu.setOnAction(actionEvent -> openWindow("/aboutDialog.fxml"));
+        aboutMenu.setOnAction(actionEvent -> openWindow("/aboutDialog.fxml", null));
 
         TreeItem<String> rootItem = new TreeItem<>("Nowa kolekcja");
         rootItem.setExpanded(true);
@@ -60,6 +75,27 @@ public class MainController {
         }
         collectionsTreeView.setRoot(rootItem);
         collectionsTreeView.setEditable(true);
+
+        collectionsTreeView.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {
+            if (FilenameUtils.getExtension(newValue.getValue()).equals("png") || FilenameUtils.getExtension(newValue.getValue()).equals("jpg")) {
+                System.out.println(getAbsolutePathFromTreeView(newValue.getValue()));
+                Thread loadPictureThread = new Thread(new LoadPictureThread(getAbsolutePathFromTreeView(newValue.getValue()), plotImageView));
+                loadPictureThread.start();
+                try {
+                    loadPictureThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else if (FilenameUtils.getExtension(newValue.getValue()).equals("plt")) {
+                System.out.println(getAbsolutePathFromTreeView(newValue.getValue()));
+                openWindow("/ScriptEditorWindow.fxml", new File(getAbsolutePathFromTreeView(newValue.getValue())));
+                System.out.println("Wybrano plik .plt");
+            } else if (FilenameUtils.getExtension(newValue.getValue()).equals("txt")) {
+                System.out.println(getAbsolutePathFromTreeView(newValue.getValue()));
+                openWindow("/TableEditorWindow.fxml", new File(getAbsolutePathFromTreeView(newValue.getValue())));
+                System.out.println("Wybrano plik .txt");
+            }
+        });
 
         closeAppMenu.setOnAction(actionEvent -> System.exit(0));
     }
@@ -102,8 +138,14 @@ public class MainController {
         }
     }
 
-    public void openWindow(String filename) {
+    public void openWindow(String filename, File file) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource(filename));
+        if (file != null) {
+            WindowControllerSupplier controllerSupplier = new WindowControllerSupplier();
+            WindowController windowController = controllerSupplier.supplyWindowController(FilenameUtils.getExtension(file.getName()));
+            System.out.println(windowController);
+            windowController.openFile(file);
+        }
         try {
             Stage stage = loader.load();
             stage.initModality(Modality.WINDOW_MODAL);
@@ -122,8 +164,21 @@ public class MainController {
             collectionsTreeView.setRoot(treeItem);
             for (File file : selectedDir.listFiles()) {
                 createTree(file, treeItem);
+                filePaths.add(file.getAbsolutePath());
+                System.out.println(file.getAbsolutePath());
             }
         }
+    }
+
+    private String getAbsolutePathFromTreeView(String filename) {
+        for (String path : filePaths) {
+            if (path.substring(path.lastIndexOf("\\") + 1).equals(filename)) {
+                System.out.println(path);
+                return path;
+            }
+        }
+
+        return null;
     }
 
     private void createTree(File file, TreeItem<String> rootItem) {

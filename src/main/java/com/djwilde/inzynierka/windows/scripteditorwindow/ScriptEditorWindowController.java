@@ -2,6 +2,7 @@ package com.djwilde.inzynierka.windows.scripteditorwindow;
 
 import com.djwilde.inzynierka.helpers.FileDialogInputOutput;
 import com.djwilde.inzynierka.helpers.ScriptHelper;
+import com.djwilde.inzynierka.windows.WindowController;
 import com.panayotis.gnuplot.JavaPlot;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -17,7 +18,7 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 
-public class ScriptEditorWindowController implements FileDialogInputOutput {
+public class ScriptEditorWindowController implements FileDialogInputOutput, WindowController {
     @FXML
     private BorderPane scriptBorderPane;
     @FXML
@@ -169,7 +170,7 @@ public class ScriptEditorWindowController implements FileDialogInputOutput {
         );
         File scriptFile = fileChooser.showOpenDialog(scriptBorderPane.getScene().getWindow());
         if (scriptFile != null) {
-            openScript(scriptFile);
+            openFile(scriptFile);
             System.out.println("Wczytano");
         }
     }
@@ -184,7 +185,7 @@ public class ScriptEditorWindowController implements FileDialogInputOutput {
         );
         File scriptFile = fileChooser.showSaveDialog(scriptBorderPane.getScene().getWindow());
         if (scriptFile != null) {
-            saveScriptToFile(scriptFile);
+            saveFile(scriptFile);
             System.out.println("Zapisano");
         }
     }
@@ -220,7 +221,7 @@ public class ScriptEditorWindowController implements FileDialogInputOutput {
     }
 
     public void executeScript() {
-        CompletableFuture<Void> runScriptFuture = CompletableFuture.runAsync(() -> saveScriptToFile(new File("test.plt"))).thenRunAsync(() -> {
+        CompletableFuture<Void> runScriptFuture = CompletableFuture.runAsync(() -> saveFile(new File("test.plt"))).thenRunAsync(() -> {
             System.out.println("Zapisano skrypt");
             ScriptHelper.executeScriptFromAnotherProcess("test.plt");
         }).thenRunAsync(() -> System.out.println("Wykonano skrypt"));
@@ -235,7 +236,7 @@ public class ScriptEditorWindowController implements FileDialogInputOutput {
         return (scriptCodeArea.getSelectedText() != null) ? scriptCodeArea.getSelectedText() : null;
     }
 
-    private void openScript(File file) {
+    public void openFile(File file) {
         StringBuilder code = new StringBuilder();
         try {
             Scanner scanner = new Scanner(file);
@@ -243,13 +244,16 @@ public class ScriptEditorWindowController implements FileDialogInputOutput {
                 String line = scanner.nextLine();
                 code.append(line).append("\n");
             }
+            if (scriptCodeArea == null) {
+                scriptCodeArea = new CodeArea();
+            }
             scriptCodeArea.replaceText(code.toString());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
     }
 
-    private void saveScriptToFile(File file) {
+    public void saveFile(File file) {
         ScriptHelper.saveScript(file, scriptCodeArea.getText());
     }
 }
