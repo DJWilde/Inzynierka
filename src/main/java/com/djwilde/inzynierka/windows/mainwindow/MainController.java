@@ -3,16 +3,28 @@ package com.djwilde.inzynierka.windows.mainwindow;
 import com.djwilde.inzynierka.threads.LaunchGnuplotThread;
 import com.djwilde.inzynierka.threads.LoadPictureThread;
 import com.djwilde.inzynierka.windows.WindowController;
+import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.TextFieldTreeCell;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.*;
+import javafx.util.Callback;
+import javafx.util.converter.DefaultStringConverter;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -162,26 +174,58 @@ public class MainController {
             tabPane.getTabs().add(tab);
             tabTreeView.setEditable(true);
 
-            tabTreeView.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {
-                if (FilenameUtils.getExtension(newValue.getValue()).equals("png") || FilenameUtils.getExtension(newValue.getValue()).equals("jpg")) {
-                    System.out.println(getAbsolutePathFromTreeView(newValue.getValue()));
-                    Thread loadPictureThread = new Thread(new LoadPictureThread(getAbsolutePathFromTreeView(newValue.getValue()), plotImageView));
-                    loadPictureThread.start();
-                    try {
-                        loadPictureThread.join();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+            tabTreeView.setOnMouseClicked(mouseEvent -> {
+                if (mouseEvent.getClickCount() == 2 && mouseEvent.getButton() == MouseButton.PRIMARY) {
+                    TreeItem<String> item = tabTreeView.getSelectionModel().getSelectedItem();
+                    if (FilenameUtils.getExtension(item.getValue()).equals("png") || FilenameUtils.getExtension(item.getValue()).equals("jpg")) {
+                        System.out.println(getAbsolutePathFromTreeView(item.getValue()));
+                        Thread loadPictureThread = new Thread(new LoadPictureThread(getAbsolutePathFromTreeView(item.getValue()), plotImageView));
+                        loadPictureThread.start();
+                        try {
+                            loadPictureThread.join();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } else if (FilenameUtils.getExtension(item.getValue()).equals("plt")) {
+                        System.out.println(getAbsolutePathFromTreeView(item.getValue()));
+                        openWindow("/ScriptEditorWindow.fxml", new File(getAbsolutePathFromTreeView(item.getValue())));
+                        System.out.println("Wybrano plik .plt");
+                    } else if (FilenameUtils.getExtension(item.getValue()).equals("txt")) {
+                        System.out.println(getAbsolutePathFromTreeView(item.getValue()));
+                        openWindow("/TableEditorWindow.fxml", new File(getAbsolutePathFromTreeView(item.getValue())));
+                        System.out.println("Wybrano plik .txt");
                     }
-                } else if (FilenameUtils.getExtension(newValue.getValue()).equals("plt")) {
-                    System.out.println(getAbsolutePathFromTreeView(newValue.getValue()));
-                    openWindow("/ScriptEditorWindow.fxml", new File(getAbsolutePathFromTreeView(newValue.getValue())));
-                    System.out.println("Wybrano plik .plt");
-                } else if (FilenameUtils.getExtension(newValue.getValue()).equals("txt")) {
-                    System.out.println(getAbsolutePathFromTreeView(newValue.getValue()));
-                    openWindow("/TableEditorWindow.fxml", new File(getAbsolutePathFromTreeView(newValue.getValue())));
-                    System.out.println("Wybrano plik .txt");
+                } else if (mouseEvent.getButton() == MouseButton.SECONDARY) {
+                    ContextMenu contextMenu = new ContextMenu();
+                    MenuItem renameFileMenuItem = new MenuItem("Zmień nazwę");
+                    MenuItem deleteFileMenuItem = new MenuItem("Usuń");
+
+                    deleteFileMenuItem.setOnAction(actionEvent -> {
+                        TreeItem<String> fileToBeDeleted = tabTreeView.getSelectionModel().getSelectedItem();
+                        File file = new File(getAbsolutePathFromTreeView(fileToBeDeleted.getValue()));
+                        if (file.delete()) {
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                            alert.setTitle("Powiadomienie");
+                            alert.setHeaderText("Sukces");
+                            alert.setContentText("Pomyślnie usunięto plik.");
+                            alert.showAndWait();
+
+                            tabTreeView.getRoot().getChildren().remove(fileToBeDeleted);
+                            filePaths.remove(file.getAbsolutePath());
+                        } else {
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            alert.setTitle("Błąd");
+                            alert.setHeaderText("Błąd");
+                            alert.setContentText("Wystąpił błąd podczas usuwania pliku.");
+                            alert.showAndWait();
+                        }
+                    });
+
+                    contextMenu.getItems().addAll(renameFileMenuItem, deleteFileMenuItem);
+                    tabTreeView.setContextMenu(contextMenu);
                 }
             });
+
             tab.setContent(tabTreeView);
             TreeItem<String> treeItem = new TreeItem<>(selectedDir.getName());
             tabTreeView.setRoot(treeItem);
@@ -190,6 +234,41 @@ public class MainController {
                 filePaths.add(file.getAbsolutePath());
                 System.out.println(file.getAbsolutePath());
             }
+
+            Runnable watchChangeDirectory = () -> {
+                try {
+                    Path path = Paths.get(selectedDir.getName());
+                    WatchService watchService = path.getFileSystem().newWatchService();
+                    path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY,
+                            StandardWatchEventKinds.ENTRY_DELETE);
+
+                    WatchKey watchKey = watchService.take();
+
+                    List<WatchEvent<?>> events = watchKey.pollEvents();
+                    for (WatchEvent<?> event : events) {
+                        if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
+                            String newFilename = event.context().toString();
+                            File file = new File(newFilename);
+                            TreeItem<String> newFile = new TreeItem<>(newFilename);
+                            tabTreeView.getRoot().getChildren().add(newFile);
+                            Path destination = Paths.get(selectedDir.getAbsolutePath() + "\\" + file.getName());
+                            filePaths.add(destination.toString());
+                        }
+                        if (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
+                            System.out.println("Zmieniono plik");
+                            String newFilename = event.context().toString();
+                            System.out.println(newFilename);
+                        }
+                        if (event.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
+                            System.out.println("Usunięto plik");
+                        }
+                    }
+                } catch (IOException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+            };
+
+            new Thread(watchChangeDirectory).start();
         }
     }
 
@@ -215,6 +294,26 @@ public class MainController {
                     "png".equals(FilenameUtils.getExtension(file.getName())) || "jpg".equals(FilenameUtils.getExtension(file.getName()))) {
             TreeItem<String> newTreeItem = new TreeItem<>(file.getName());
             rootItem.getChildren().add(newTreeItem);
+        }
+    }
+
+    private static final class RenameTreeNodeCell extends TextFieldTreeCell<String> {
+        private ContextMenu contextMenu = new ContextMenu();
+
+        public RenameTreeNodeCell() {
+            super(new DefaultStringConverter());
+
+            MenuItem renameMenuItem = new MenuItem("Zmień nazwę");
+            renameMenuItem.setOnAction(actionEvent -> startEdit());
+        }
+
+        @Override
+        public void updateItem(String item, boolean empty) {
+            super.updateItem(item, empty);
+
+            if (!isEditing()) {
+                setContextMenu(contextMenu);
+            }
         }
     }
 
