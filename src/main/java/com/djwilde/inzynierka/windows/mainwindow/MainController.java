@@ -1,30 +1,25 @@
 package com.djwilde.inzynierka.windows.mainwindow;
 
+import com.djwilde.inzynierka.helpers.LogHelper;
 import com.djwilde.inzynierka.threads.LaunchGnuplotThread;
 import com.djwilde.inzynierka.threads.LoadPictureThread;
 import com.djwilde.inzynierka.windows.WindowController;
-import javafx.event.ActionEvent;
-import javafx.event.Event;
-import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTreeCell;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.*;
-import javafx.util.Callback;
 import javafx.util.converter.DefaultStringConverter;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.*;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -55,7 +50,7 @@ public class MainController {
     private Button loadCollectionButton;
 
     @FXML
-    private TextArea gnuplotOutputTextArea;
+    private TextArea outputTextArea;
 
     @FXML
     private TabPane tabPane;
@@ -63,6 +58,8 @@ public class MainController {
     private TreeView<String> collectionsTreeView;
 
     private final List<String> filePaths = new ArrayList<>();
+
+    private final LogHelper logHelper = LogHelper.getInstance();
 
     public void initialize() {
         newCommandMenuItem.setOnAction(actionEvent -> showNewCommandWindow());
@@ -74,9 +71,12 @@ public class MainController {
         loadCollectionButton.setOnAction(actionEvent -> openCollection(mainWindowPane.getScene().getWindow()));
         aboutMenu.setOnAction(actionEvent -> openWindow("/aboutDialog.fxml", null));
 
-        gnuplotOutputTextArea.setEditable(false);
+        outputTextArea.setEditable(false);
 
         closeAppMenu.setOnAction(actionEvent -> System.exit(0));
+
+        logHelper.appendOutputText(outputTextArea, "Uruchamianie zasobów aplikacji...");
+        logHelper.appendOutputText(outputTextArea, "Wczytano pomyślnie. Witaj w JPlotter!");
     }
 
     public void showNewCommandWindow() {
@@ -93,10 +93,14 @@ public class MainController {
         result.ifPresent(text -> {
             if (!text.equals("")) {
                 Thread gnuplotThread = new Thread(new LaunchGnuplotThread(text));
+                logHelper.appendOutputText(outputTextArea, "Uruchamianie gnuplota...");
+                logHelper.appendOutputText(outputTextArea,"Generowanie wykresu...");
                 gnuplotThread.start();
                 try {
                     gnuplotThread.join();
+                    logHelper.appendOutputText(outputTextArea,"Wykres wygenerowano pomyślnie.");
                 } catch (InterruptedException e) {
+                    logHelper.appendOutputText(outputTextArea,"Wystąpił błąd w trakcie generowania wykresu. Przerwano wykonanie zadania." + e.getMessage());
                     e.printStackTrace();
                 }
             } else {
@@ -109,9 +113,11 @@ public class MainController {
             }
         });
         Thread loadPictureThread = new Thread(new LoadPictureThread("test.png", plotImageView));
+        logHelper.appendOutputText(outputTextArea,"Wczytywanie gotowego wykresu...");
         loadPictureThread.start();
         try {
             loadPictureThread.join();
+            logHelper.appendOutputText(outputTextArea,"Wyświetlanie wykresu...");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -142,6 +148,7 @@ public class MainController {
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(s -> {
+            logHelper.appendOutputText(outputTextArea,"Tworzenie nowej kolekcji...");
             File newDir = new File(s);
             boolean dirCreated = newDir.mkdir();
             if (dirCreated) {
@@ -152,12 +159,14 @@ public class MainController {
                 alert.showAndWait();
                 Tab tab = new Tab(s);
                 tabPane.getTabs().add(tab);
+                logHelper.appendOutputText(outputTextArea,"Pomyślnie utworzono nowy katalog na dysku...");
             } else {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Błąd");
                 alert.setHeaderText("Błąd");
                 alert.setContentText("Wystąpił błąd podczas tworzenia kolekcji.");
                 alert.showAndWait();
+                logHelper.appendOutputText(outputTextArea,"Wystąpił błąd podczas tworzenia kolekcji.");
             }
         });
     }
@@ -169,6 +178,7 @@ public class MainController {
             if (tabPane.getTabs().get(0).getText().equals("Twoje kolekcje")) {
                 tabPane.getTabs().remove(0);
             }
+            logHelper.appendOutputText(outputTextArea,"Wczytywanie kolekcji...");
             Tab tab = new Tab(selectedDir.getName());
             TreeView<String> tabTreeView = new TreeView<>();
             tabPane.getTabs().add(tab);
@@ -178,22 +188,24 @@ public class MainController {
                 if (mouseEvent.getClickCount() == 2 && mouseEvent.getButton() == MouseButton.PRIMARY) {
                     TreeItem<String> item = tabTreeView.getSelectionModel().getSelectedItem();
                     if (FilenameUtils.getExtension(item.getValue()).equals("png") || FilenameUtils.getExtension(item.getValue()).equals("jpg")) {
+                        logHelper.appendOutputText(outputTextArea,"Wczytywanie pliku " + item.getValue() + " z kolekcji " + selectedDir.getName() + "...");
                         System.out.println(getAbsolutePathFromTreeView(item.getValue()));
                         Thread loadPictureThread = new Thread(new LoadPictureThread(getAbsolutePathFromTreeView(item.getValue()), plotImageView));
                         loadPictureThread.start();
                         try {
                             loadPictureThread.join();
+                            logHelper.appendOutputText(outputTextArea,"Pomyślnie wczytano plik " + item.getValue() + ".");
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     } else if (FilenameUtils.getExtension(item.getValue()).equals("plt")) {
-                        System.out.println(getAbsolutePathFromTreeView(item.getValue()));
+                        logHelper.appendOutputText(outputTextArea,"Wczytywanie skryptu " + item.getValue() + " z kolekcji " + selectedDir.getName() + "...");
                         openWindow("/ScriptEditorWindow.fxml", new File(getAbsolutePathFromTreeView(item.getValue())));
-                        System.out.println("Wybrano plik .plt");
+                        logHelper.appendOutputText(outputTextArea,"Pomyślnie wczytano plik " + item.getValue());
                     } else if (FilenameUtils.getExtension(item.getValue()).equals("txt")) {
-                        System.out.println(getAbsolutePathFromTreeView(item.getValue()));
+                        logHelper.appendOutputText(outputTextArea,"Wczytywanie danych z pliku " + item.getValue() + " z kolekcji " + selectedDir.getName() + "...");
                         openWindow("/TableEditorWindow.fxml", new File(getAbsolutePathFromTreeView(item.getValue())));
-                        System.out.println("Wybrano plik .txt");
+                        logHelper.appendOutputText(outputTextArea,"Pomyślnie wczytano plik " + item.getValue());
                     }
                 } else if (mouseEvent.getButton() == MouseButton.SECONDARY) {
                     ContextMenu contextMenu = new ContextMenu();
@@ -203,6 +215,7 @@ public class MainController {
                     deleteFileMenuItem.setOnAction(actionEvent -> {
                         TreeItem<String> fileToBeDeleted = tabTreeView.getSelectionModel().getSelectedItem();
                         File file = new File(getAbsolutePathFromTreeView(fileToBeDeleted.getValue()));
+                        logHelper.appendOutputText(outputTextArea,"Usuwanie pliku " + fileToBeDeleted.getValue() + " z kolekcji " + selectedDir.getName());
                         if (file.delete()) {
                             Alert alert = new Alert(Alert.AlertType.INFORMATION);
                             alert.setTitle("Powiadomienie");
@@ -210,6 +223,7 @@ public class MainController {
                             alert.setContentText("Pomyślnie usunięto plik.");
                             alert.showAndWait();
 
+                            logHelper.appendOutputText(outputTextArea,"Usunięto plik " + fileToBeDeleted.getValue());
                             tabTreeView.getRoot().getChildren().remove(fileToBeDeleted);
                             filePaths.remove(file.getAbsolutePath());
                         } else {
@@ -218,6 +232,7 @@ public class MainController {
                             alert.setHeaderText("Błąd");
                             alert.setContentText("Wystąpił błąd podczas usuwania pliku.");
                             alert.showAndWait();
+                            logHelper.appendOutputText(outputTextArea,"Wystąpił błąd podczas usuwania pliku.");
                         }
                     });
 
@@ -232,6 +247,7 @@ public class MainController {
             for (File file : selectedDir.listFiles()) {
                 createTree(file, treeItem);
                 filePaths.add(file.getAbsolutePath());
+                logHelper.appendOutputText(outputTextArea,"Wczytano plik " + file.getName() + " do kolekcji " + selectedDir.getName());
                 System.out.println(file.getAbsolutePath());
             }
 
@@ -252,6 +268,7 @@ public class MainController {
                             TreeItem<String> newFile = new TreeItem<>(newFilename);
                             tabTreeView.getRoot().getChildren().add(newFile);
                             Path destination = Paths.get(selectedDir.getAbsolutePath() + "\\" + file.getName());
+                            logHelper.appendOutputText(outputTextArea,"Dodano plik " + newFilename + " do kolekcji.");
                             filePaths.add(destination.toString());
                         }
                         if (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
@@ -269,6 +286,7 @@ public class MainController {
             };
 
             new Thread(watchChangeDirectory).start();
+            logHelper.appendOutputText(outputTextArea,"Pomyślnie wczytano kolekcję " + selectedDir.getName());
         }
     }
 

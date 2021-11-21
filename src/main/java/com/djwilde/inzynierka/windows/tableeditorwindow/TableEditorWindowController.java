@@ -1,6 +1,7 @@
 package com.djwilde.inzynierka.windows.tableeditorwindow;
 
 import com.djwilde.inzynierka.helpers.FileDialogInputOutput;
+import com.djwilde.inzynierka.helpers.LogHelper;
 import com.djwilde.inzynierka.windows.WindowController;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -33,6 +34,8 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
     private Button saveDataButton;
     @FXML
     private TableView<ObservableList<String>> dataTableView;
+
+    private final LogHelper logHelper = LogHelper.getInstance();
 
     private final ObservableList<ObservableList<String>> data = FXCollections.observableArrayList();
 
