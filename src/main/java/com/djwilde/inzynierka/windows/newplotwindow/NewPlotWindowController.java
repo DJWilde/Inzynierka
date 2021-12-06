@@ -7,6 +7,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Pair;
 import org.fxmisc.richtext.CodeArea;
@@ -51,6 +52,9 @@ public class NewPlotWindowController {
         keywordListView.setItems(FXCollections.observableList(new ArrayList<>(keywordSet)));
         scriptTextArea.setDisable(true);
 
+        keywordListView.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) ->
+                addKeywordToScriptButton.setDisable(newValue.trim().isEmpty()));
+
         addKeywordToScriptButton.setOnAction(actionEvent -> addKeywordToScript());
         editScriptButton.setOnAction(actionEvent -> editScript());
         executeButton.setOnAction(actionEvent -> executeScript());
@@ -59,8 +63,6 @@ public class NewPlotWindowController {
     }
 
     public void addKeywordToScript() {
-//        String selectedKeyword = keywordListView.getSelectionModel().getSelectedItem();
-//        scriptTextArea.appendText(selectedKeyword + "\n");
         String selectedKeyword = keywordListView.getSelectionModel().getSelectedItem();
         List<String> selectedParametersList = null;
         for (Map.Entry<String, List<String>> entry : entries) {
@@ -97,12 +99,10 @@ public class NewPlotWindowController {
     }
 
     private void generateNewCommandDialog(String selectedKeyword, List<String> selectedParametersList) {
-        Dialog<List<String>> generateNewCommandDialogBox = new Dialog<>();
+        Dialog<String> generateNewCommandDialogBox = new Dialog<>();
         generateNewCommandDialogBox.setResizable(true);
-        List<String> templateChoices = new ArrayList<>();
-        templateChoices.add("Templatka 1");
-        templateChoices.add("Templatka 2");
-        templateChoices.add("Templatka 3");
+        List<String> templateChoices = GnuplotConstants.GNUPLOT_COMMANDS_AND_TEMPLATES.get(selectedKeyword);
+        List<String> keywordChoices = GnuplotConstants.GNUPLOT_COMMANDS_AND_KEYWORDS.get(selectedKeyword);
         generateNewCommandDialogBox.setTitle("Dodawanie polecenia");
         generateNewCommandDialogBox.setHeaderText("Dodawanie polecenia");
         generateNewCommandDialogBox.setContentText("Użyj tego okna dialogowego w celu edycji polecenia i dodania go do skryptu.");
@@ -122,6 +122,16 @@ public class NewPlotWindowController {
 
         selectTemplateChoicePane.setPadding(new Insets(10, 10, 10, 10));
         vBox.getChildren().add(selectTemplateChoicePane);
+
+        if (keywordChoices != null) {
+            HBox hBox = new HBox();
+            hBox.setPadding(new Insets(10, 10, 10, 10));
+            for (int i = 0; i < keywordChoices.size(); i++) {
+                CheckBox checkBox = new CheckBox(keywordChoices.get(i));
+                hBox.getChildren().add(checkBox);
+            }
+            vBox.getChildren().add(hBox);
+        }
 
         GridPane parametersGridPane = new GridPane();
         parametersGridPane.setHgap(10);
@@ -154,15 +164,7 @@ public class NewPlotWindowController {
 
         generateNewCommandDialogBox.getDialogPane().setContent(vBox);
 
-        generateNewCommandDialogBox.setResultConverter(buttonType ->
-                List.of());
-
-        Optional<List<String>> result = generateNewCommandDialogBox.showAndWait();
-        result.ifPresent(strings -> {
-
-            for (TextField parameters : parameterTextFields) {
-                System.out.println(parameters.getText());
-            }
-        });
+        Optional<String> result = generateNewCommandDialogBox.showAndWait();
+        result.ifPresent(System.out::println);
     }
 }
