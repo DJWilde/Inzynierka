@@ -1,5 +1,6 @@
 package com.djwilde.inzynierka.windows.mainwindow;
 
+import com.djwilde.inzynierka.helpers.GoogleDriveConnector;
 import com.djwilde.inzynierka.helpers.LogHelper;
 import com.djwilde.inzynierka.threads.LaunchGnuplotThread;
 import com.djwilde.inzynierka.threads.LoadPictureThread;
@@ -18,6 +19,7 @@ import org.apache.commons.io.FilenameUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -48,6 +50,8 @@ public class MainController {
     private Button newCollectionButton;
     @FXML
     private Button loadCollectionButton;
+    @FXML
+    private Button connectToNetworkButton;
 
     @FXML
     private TextArea outputTextArea;
@@ -69,6 +73,13 @@ public class MainController {
         editDataButton.setOnAction(actionEvent -> openWindow("/TableEditorWindow.fxml", null));
         newCollectionButton.setOnAction(actionEvent -> newCollection());
         loadCollectionButton.setOnAction(actionEvent -> openCollection(mainWindowPane.getScene().getWindow()));
+        connectToNetworkButton.setOnAction(actionEvent -> {
+            try {
+                connectToNetworkDrive();
+            } catch (GeneralSecurityException | IOException e) {
+                e.printStackTrace();
+            }
+        });
         aboutMenu.setOnAction(actionEvent -> openWindow("/aboutDialog.fxml", null));
 
         outputTextArea.setEditable(false);
@@ -288,6 +299,10 @@ public class MainController {
             new Thread(watchChangeDirectory).start();
             logHelper.appendOutputText(outputTextArea,"Pomyślnie wczytano kolekcję " + selectedDir.getName());
         }
+    }
+
+    public void connectToNetworkDrive() throws GeneralSecurityException, IOException {
+        GoogleDriveConnector.connect();
     }
 
     private String getAbsolutePathFromTreeView(String filename) {
