@@ -6,28 +6,151 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.http.AbstractInputStreamContent;
+import com.google.api.client.http.FileContent;
+import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.util.store.DataStoreFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.FileList;
+import com.google.api.services.drive.model.Permission;
 
 import java.io.*;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class GoogleDriveConnector {
-    private static final String APPLICATION_NAME = "JPlotter";
+public class GoogleDriveConnector extends InternetConnector {
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
-    private static final File CREDENTIALS_FOLDER = new File("config/credentials");
-    private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE);
-    private static final String CLIENT_SECRET_FILENAME = "client_secret.json";
+    private final File CREDENTIALS_FOLDER = new File("config/credentials");
+    private final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE);
+    private final String CLIENT_SECRET_FILENAME = "client_secret.json";
 
-    private static Credential getCredentials(NetHttpTransport httpTransport) throws IOException {
+    private DataStoreFactory dataStoreFactory;
+    private HttpTransport httpTransport;
+
+    private Drive driveService;
+
+    public void initialize() {
+        try {
+            httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+            dataStoreFactory = new FileDataStoreFactory(CREDENTIALS_FOLDER);
+            driveService = getDriveService();
+        } catch (GeneralSecurityException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<com.google.api.services.drive.model.File> getSubfoldersById(String parentFolderId) throws IOException {
+        String nextPageToken = null;
+
+        List<com.google.api.services.drive.model.File> googleDriveFiles = new ArrayList<>();
+        String query;
+
+        if (parentFolderId == null) {
+            query = " mimeType = 'application/vnd.google-apps.folder' and 'root' in parents";
+        } else {
+            query = " mimeType = 'application/vnd.google-apps.folder' and '" + parentFolderId + "' in parents";
+        }
+
+        do {
+            FileList resultList = driveService.files().list().setQ(query).setSpaces("drive").setFields("nextPageToken, files(id, name, createdTime)")
+                    .setPageToken(nextPageToken).execute();
+            googleDriveFiles.addAll(resultList.getFiles());
+            nextPageToken = resultList.getNextPageToken();
+        } while (nextPageToken != null);
+
+        return googleDriveFiles;
+    }
+
+    public List<com.google.api.services.drive.model.File> getRootFolders() throws IOException {
+        return getSubfoldersById(null);
+    }
+
+    public List<com.google.api.services.drive.model.File> getSubfolderByName(String parentFolderId, String subfolderName) throws IOException {
+        String nextPageToken = null;
+
+        List<com.google.api.services.drive.model.File> googleDriveSubfolderFiles = new ArrayList<>();
+        String query;
+
+        if (parentFolderId == null) {
+            query = " name = '" + subfolderName + "' and mimeType = 'application/vnd.google-apps.folder' and 'root' in parents";
+        } else {
+            query = " name = '" + subfolderName + "' and mimeType = 'application/vnd.google-apps.folder' and '" + parentFolderId + "' in parents";
+        }
+
+        do {
+            FileList resultList = driveService.files().list().setQ(query).setSpaces("drive").setFields("nextPageToken, files(id, name, createdTime)")
+                    .setPageToken(nextPageToken).execute();
+            googleDriveSubfolderFiles.addAll(resultList.getFiles());
+            nextPageToken = resultList.getNextPageToken();
+        } while (nextPageToken != null);
+
+        return googleDriveSubfolderFiles;
+    }
+
+    public List<com.google.api.services.drive.model.File> getRootFolderByName(String folderName) throws IOException {
+        return getSubfolderByName(null, folderName);
+    }
+
+    public List<com.google.api.services.drive.model.File> getFilesByName(String filename) throws IOException {
+        String nextPageToken = null;
+
+        List<com.google.api.services.drive.model.File> googleDriveFoundFiles = new ArrayList<>();
+        String query = " name contains '" + filename + "' and mimetype != 'application/vnd.google-apps.folder'";
+
+        do {
+            FileList resultList = driveService.files().list().setQ(query).setSpaces("drive").setFields("nextPageToken, files(id, name, createdTime, mimeType)")
+                    .setPageToken(nextPageToken).execute();
+            googleDriveFoundFiles.addAll(resultList.getFiles());
+            nextPageToken = resultList.getNextPageToken();
+        } while (nextPageToken != null);
+
+        return googleDriveFoundFiles;
+    }
+
+    public com.google.api.services.drive.model.File createNewFolder(String parentFolderId, String newFolderName) throws IOException {
+        com.google.api.services.drive.model.File newFile = new com.google.api.services.drive.model.File();
+
+        newFile.setName(newFolderName);
+        newFile.setMimeType("application/vnd.google-apps.folder");
+
+        if (parentFolderId != null) {
+            List<String> parentFolders = List.of(parentFolderId);
+            newFile.setParents(parentFolders);
+        }
+
+        return driveService.files().create(newFile).setFields("id, name").execute();
+    }
+
+    public com.google.api.services.drive.model.File createNewFile(String parentFolderId, String contentType, String filename, File file) throws IOException {
+        com.google.api.services.drive.model.File newFile = new com.google.api.services.drive.model.File();
+        newFile.setName(filename);
+
+        List<String> parentFolders = List.of(parentFolderId);
+        newFile.setParents(parentFolders);
+
+        AbstractInputStreamContent uploadedInputStreamContent = new FileContent(contentType, file);
+
+        return driveService.files().create(newFile, uploadedInputStreamContent).setFields("id, webContentLink, webViewLink, parents")
+                .execute();
+    }
+
+    public Permission shareFolder(String fileId, String email, String permissionType, String permissionRole) throws IOException {
+        Permission permission = new Permission();
+        permission.setType(permissionType);
+        permission.setRole(permissionRole);
+        permission.setEmailAddress(email);
+
+        return driveService.permissions().create(fileId, permission).execute();
+    }
+
+    private Credential getCredentials() throws IOException {
         File clientSecretFile = new File(CREDENTIALS_FOLDER, CLIENT_SECRET_FILENAME);
         if (!clientSecretFile.exists()) {
             throw new FileNotFoundException("Skopiuj plik " + CLIENT_SECRET_FILENAME + " do folderu " +
@@ -43,30 +166,14 @@ public class GoogleDriveConnector {
         return new AuthorizationCodeInstalledApp(authorizationCodeFlow, new LocalServerReceiver()).authorize("user");
     }
 
-    public static void connect() throws GeneralSecurityException, IOException {
-        if (!CREDENTIALS_FOLDER.exists()) {
-            boolean isFolderCreated = CREDENTIALS_FOLDER.mkdirs();
-            if (isFolderCreated) {
-                System.out.println("Utworzono folder o nazwie " + CREDENTIALS_FOLDER.getAbsolutePath());
-                System.out.println("Przenieś plik " + CLIENT_SECRET_FILENAME + " do tego folderu i spróbuj jeszcze raz");
-                return;
-            }
+    private Drive getDriveService() throws IOException {
+        if (driveService != null) {
+            return driveService;
         }
 
-        NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-        Credential credentials = getCredentials(httpTransport);
+        Credential credential = getCredentials();
+        driveService = new Drive.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName(APPLICATION_NAME).build();
 
-        Drive drive = new Drive.Builder(httpTransport, JSON_FACTORY, credentials).setApplicationName(APPLICATION_NAME).build();
-
-        FileList result = drive.files().list().setPageSize(20).setFields("nextPageToken, files(id, name)").execute();
-        List<com.google.api.services.drive.model.File> fileList = result.getFiles();
-        if (fileList != null) {
-            System.out.println("Pliki: ");
-            for (com.google.api.services.drive.model.File file : fileList) {
-                System.out.println("Nazwa pliku: " + file.getName() + " (" + file.getId() + ")");
-            }
-        } else {
-            System.out.println("Nie znaleziono plików");
-        }
+        return driveService;
     }
 }

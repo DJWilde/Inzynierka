@@ -302,7 +302,12 @@ public class MainController {
     }
 
     public void connectToNetworkDrive() throws GeneralSecurityException, IOException {
-        GoogleDriveConnector.connect();
+        GoogleDriveConnector googleDriveConnector = new GoogleDriveConnector();
+        googleDriveConnector.initialize();
+        List<com.google.api.services.drive.model.File> driveFiles = googleDriveConnector.getRootFolderByName("Documents");
+        for (com.google.api.services.drive.model.File file : driveFiles) {
+            logHelper.appendOutputText(outputTextArea, "Folder ID: " + file.getId() + "; folder name: " + file.getName());
+        }
     }
 
     private String getAbsolutePathFromTreeView(String filename) {
