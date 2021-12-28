@@ -1,18 +1,23 @@
 package com.djwilde.inzynierka.windows.mainwindow;
 
-import com.djwilde.inzynierka.helpers.GoogleDriveConnector;
-import com.djwilde.inzynierka.helpers.LogHelper;
+import com.djwilde.inzynierka.helpers.*;
 import com.djwilde.inzynierka.threads.LaunchGnuplotThread;
 import com.djwilde.inzynierka.threads.LoadPictureThread;
 import com.djwilde.inzynierka.windows.WindowController;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTreeCell;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.stage.*;
+import javafx.util.Pair;
 import javafx.util.converter.DefaultStringConverter;
 import org.apache.commons.io.FilenameUtils;
 
@@ -65,6 +70,9 @@ public class MainController {
 
     private final LogHelper logHelper = LogHelper.getInstance();
 
+    private boolean isConnected = false;
+    private InternetConnector internetConnector;
+
     public void initialize() {
         newCommandMenuItem.setOnAction(actionEvent -> showNewCommandWindow());
         toolbarNewCommandButton.setOnAction(actionEvent -> showNewCommandWindow());
@@ -73,13 +81,7 @@ public class MainController {
         editDataButton.setOnAction(actionEvent -> openWindow("/TableEditorWindow.fxml", null));
         newCollectionButton.setOnAction(actionEvent -> newCollection());
         loadCollectionButton.setOnAction(actionEvent -> openCollection(mainWindowPane.getScene().getWindow()));
-        connectToNetworkButton.setOnAction(actionEvent -> {
-            try {
-                connectToNetworkDrive();
-            } catch (GeneralSecurityException | IOException e) {
-                e.printStackTrace();
-            }
-        });
+        connectToNetworkButton.setOnAction(actionEvent -> chooseOnlineDriveService());
         aboutMenu.setOnAction(actionEvent -> openWindow("/aboutDialog.fxml", null));
 
         outputTextArea.setEditable(false);
@@ -301,13 +303,41 @@ public class MainController {
         }
     }
 
-    public void connectToNetworkDrive() throws GeneralSecurityException, IOException {
-        GoogleDriveConnector googleDriveConnector = new GoogleDriveConnector();
-        googleDriveConnector.initialize();
-        List<com.google.api.services.drive.model.File> driveFiles = googleDriveConnector.getRootFolderByName("Documents");
-        for (com.google.api.services.drive.model.File file : driveFiles) {
-            logHelper.appendOutputText(outputTextArea, "Folder ID: " + file.getId() + "; folder name: " + file.getName());
-        }
+//    public void connectToNetworkDrive() throws GeneralSecurityException, IOException {
+//        GoogleDriveConnector googleDriveConnector = new GoogleDriveConnector();
+//        googleDriveConnector.initialize();
+//        List<com.google.api.services.drive.model.File> driveFiles = googleDriveConnector.getRootFolderByName("Documents");
+//        for (com.google.api.services.drive.model.File file : driveFiles) {
+//            logHelper.appendOutputText(outputTextArea, "Folder ID: " + file.getId() + "; folder name: " + file.getName());
+//        }
+//    }
+
+    public void chooseOnlineDriveService() {
+        List<String> choices = new ArrayList<>();
+        choices.add("Google Drive");
+        choices.add("Dropbox");
+
+        ChoiceDialog<String> choiceDialog = new ChoiceDialog<>("Google Drive", choices);
+        choiceDialog.setTitle("Połącz się z dyskiem");
+        choiceDialog.setHeaderText("Połącz się z dyskiem sieciowym");
+        choiceDialog.setContentText("Wybierz usługę z którą chcesz się połączyć: ");
+
+        Optional<String> result = choiceDialog.showAndWait();
+        result.ifPresent(service -> {
+            InternetConnectorCommand connectorCommand = new InternetConnectorCommand();
+            internetConnector = connectorCommand.createConnector(service);
+            internetConnector.initialize();
+            isConnected = true;
+            List<com.google.api.services.drive.model.File> files = null;
+            try {
+                files = (List<com.google.api.services.drive.model.File>) internetConnector.getRootFolders();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            for (com.google.api.services.drive.model.File file : files) {
+                logHelper.appendOutputText(outputTextArea, "Folder ID: " + file.getId() + "; folder name: " + file.getName());
+            }
+        });
     }
 
     private String getAbsolutePathFromTreeView(String filename) {

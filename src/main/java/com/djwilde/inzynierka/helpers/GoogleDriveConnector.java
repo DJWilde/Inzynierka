@@ -36,6 +36,7 @@ public class GoogleDriveConnector extends InternetConnector {
 
     private Drive driveService;
 
+    @Override
     public void initialize() {
         try {
             httpTransport = GoogleNetHttpTransport.newTrustedTransport();
@@ -46,6 +47,7 @@ public class GoogleDriveConnector extends InternetConnector {
         }
     }
 
+    @Override
     public List<com.google.api.services.drive.model.File> getSubfoldersById(String parentFolderId) throws IOException {
         String nextPageToken = null;
 
@@ -68,10 +70,12 @@ public class GoogleDriveConnector extends InternetConnector {
         return googleDriveFiles;
     }
 
+    @Override
     public List<com.google.api.services.drive.model.File> getRootFolders() throws IOException {
         return getSubfoldersById(null);
     }
 
+    @Override
     public List<com.google.api.services.drive.model.File> getSubfolderByName(String parentFolderId, String subfolderName) throws IOException {
         String nextPageToken = null;
 
@@ -94,10 +98,12 @@ public class GoogleDriveConnector extends InternetConnector {
         return googleDriveSubfolderFiles;
     }
 
+    @Override
     public List<com.google.api.services.drive.model.File> getRootFolderByName(String folderName) throws IOException {
         return getSubfolderByName(null, folderName);
     }
 
+    @Override
     public List<com.google.api.services.drive.model.File> getFilesByName(String filename) throws IOException {
         String nextPageToken = null;
 
