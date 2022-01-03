@@ -2,12 +2,11 @@ package com.djwilde.inzynierka.windows.scripteditorwindow;
 
 import com.djwilde.inzynierka.helpers.FileDialogInputOutput;
 import com.djwilde.inzynierka.helpers.ScriptHelper;
+import com.djwilde.inzynierka.helpers.Timer;
 import com.djwilde.inzynierka.windows.WindowController;
-import com.panayotis.gnuplot.JavaPlot;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
@@ -15,6 +14,7 @@ import org.fxmisc.richtext.CodeArea;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 
@@ -79,9 +79,11 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
 
     private Clipboard systemClipboard;
 
+    private boolean isScriptOpen = false;
+
     public void initialize() {
         KeyCombination newScriptShortcut = new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN);
-        Runnable newScriptShortcutRunner = this::showNewWindow;
+        Runnable newScriptShortcutRunner = this::newScript;
 
         KeyCombination openScriptShortcut = new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN);
         Runnable openScriptShortcutRunner = this::showOpenFileDialog;
@@ -107,8 +109,8 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
         KeyCombination executeShortcut = new KeyCodeCombination(KeyCode.E, KeyCombination.SHIFT_DOWN, KeyCombination.CONTROL_DOWN);
         Runnable executeScriptRunner = this::executeScript;
 
-        newScriptButton.setOnAction(actionEvent -> showNewWindow());
-        newScriptMenuItem.setOnAction(actionEvent -> showNewWindow());
+        newScriptButton.setOnAction(actionEvent -> newScript());
+        newScriptMenuItem.setOnAction(actionEvent -> newScript());
         newScriptMenuItem.setAccelerator(KeyCombination.keyCombination("Ctrl+N"));
 
         openScriptButton.setOnAction(actionEvent -> showOpenFileDialog());
@@ -156,11 +158,20 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
 //        scriptCodeArea.setOnKeyPressed(keyEvent -> SyntaxHighlightConfig.getInstance().highlightSyntax());
     }
 
-    public void showNewWindow() {
-
+    public void newScript() {
+        if (isScriptOpen) {
+            clearScriptDialog();
+            isScriptOpen = false;
+        }
+        scriptCodeArea.clear();
+        isScriptOpen = true;
     }
 
     public void showOpenFileDialog() {
+        if (isScriptOpen) {
+            clearScriptDialog();
+            isScriptOpen = false;
+        }
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Otwórz plik");
         fileChooser.getExtensionFilters().addAll(
@@ -173,6 +184,7 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
             openFile(scriptFile);
             System.out.println("Wczytano");
         }
+        isScriptOpen = true;
     }
 
     public void showSaveFileDialog() {
@@ -188,6 +200,28 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
             saveFile(scriptFile);
             System.out.println("Zapisano");
         }
+    }
+
+    private void clearScriptDialog() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Zapisać?");
+        alert.setHeaderText("Zapisać skrypt?");
+        alert.setContentText("Czy chcesz zapisać skrypt? Niezapisane dane mogą zostać utracone.");
+        ButtonType yesButton = new ButtonType("Tak", ButtonBar.ButtonData.YES);
+        ButtonType noButton = new ButtonType("Nie", ButtonBar.ButtonData.NO);
+        ButtonType cancelButton = new ButtonType("Anuluj", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(yesButton, noButton, cancelButton);
+        Optional<ButtonType> result = alert.showAndWait();
+        result.ifPresent(buttonType -> {
+            if (buttonType == yesButton) {
+                showSaveFileDialog();
+                scriptCodeArea.clear();
+            } else if (buttonType == noButton) {
+                scriptCodeArea.clear();
+            } else {
+                alert.close();
+            }
+        });
     }
 
     public void undoAction() {
@@ -220,6 +254,7 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
 
     }
 
+    @Timer
     public void executeScript() {
         CompletableFuture<Void> runScriptFuture = CompletableFuture.runAsync(() -> saveFile(new File("test.plt"))).thenRunAsync(() -> {
             System.out.println("Zapisano skrypt");
@@ -236,6 +271,7 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
         return (scriptCodeArea.getSelectedText() != null) ? scriptCodeArea.getSelectedText() : null;
     }
 
+    @Timer
     public void openFile(File file) {
         StringBuilder code = new StringBuilder();
         try {
@@ -250,6 +286,7 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
         }
     }
 
+    @Timer
     public void saveFile(File file) {
         ScriptHelper.saveScript(file, scriptCodeArea.getText());
     }

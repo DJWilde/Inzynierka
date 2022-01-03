@@ -1,0 +1,8 @@
+<aspectj>
+    <aspects>
+        <aspect name="com.djwilde.inzynierka.aspect.LoggingAspect"></aspect>
+        <weaver options="-showWeaveInfo">
+            <include within="com.djwilde.inzynierka.*" />
+        </weaver>
+    </aspects>
+</aspectj>

@@ -88,8 +88,11 @@ public class MainController {
 
         closeAppMenu.setOnAction(actionEvent -> System.exit(0));
 
-        logHelper.appendOutputText(outputTextArea, "Uruchamianie zasobów aplikacji...");
-        logHelper.appendOutputText(outputTextArea, "Wczytano pomyślnie. Witaj w JPlotter!");
+        File logFile = new File("log/" + Instant.now() + "-log.txt");
+        logHelper.setLogFile(logFile);
+
+        logHelper.log("Uruchamianie zasobów aplikacji...");
+        logHelper.log("Wczytano pomyślnie. Witaj w JPlotter!");
     }
 
     public void showNewCommandWindow() {

@@ -2,6 +2,7 @@ package com.djwilde.inzynierka.windows.tableeditorwindow;
 
 import com.djwilde.inzynierka.helpers.FileDialogInputOutput;
 import com.djwilde.inzynierka.helpers.LogHelper;
+import com.djwilde.inzynierka.helpers.Timer;
 import com.djwilde.inzynierka.windows.WindowController;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -9,7 +10,6 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -37,6 +37,8 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
 
     private final LogHelper logHelper = LogHelper.getInstance();
 
+    private boolean isTableOpen = false;
+
     private final ObservableList<ObservableList<String>> data = FXCollections.observableArrayList();
 
     public void initialize() {
@@ -56,6 +58,40 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
     }
 
     public void createTable() {
+        if (isTableOpen) {
+            clearTableDialog();
+        } else {
+            createNewTableDialog();
+        }
+    }
+
+    private void clearTableDialog() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Zapisać?");
+        alert.setHeaderText("Zapisać tabelę?");
+        alert.setContentText("Czy chcesz zapisać zmiany w tabeli? Niezapisane dane mogą zostać utracone.");
+        ButtonType yesButton = new ButtonType("Tak", ButtonBar.ButtonData.YES);
+        ButtonType noButton = new ButtonType("Nie", ButtonBar.ButtonData.NO);
+        ButtonType cancelButton = new ButtonType("Anuluj", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(yesButton, noButton, cancelButton);
+        Optional<ButtonType> result = alert.showAndWait();
+        result.ifPresent(buttonType -> {
+            if (buttonType == yesButton) {
+                showSaveFileDialog();
+                createNewTableDialog();
+            } else if (buttonType == noButton) {
+                createNewTableDialog();
+            }
+        });
+    }
+
+    private void createNewTableDialog() {
+        isTableOpen = false;
+        if (data.size() != 0) {
+            dataTableView.getItems().clear();
+            dataTableView.getColumns().clear();
+            data.clear();
+        }
         Dialog<Pair<String, String>> createTableDialog = new Dialog<>();
         createTableDialog.setTitle("Tworzenie tabeli");
         createTableDialog.setHeaderText("Tworzenie tabeli");
@@ -112,11 +148,13 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
             for (ObservableList<String> list : data) {
                 dataTableView.getItems().add(list);
             }
+
+            isTableOpen = true;
         });
     }
 
     public void addColumn() {
-        if (data.size() == 0) {
+        if (!isTableOpen) {
             TextInputDialog dialog = new TextInputDialog();
             dialog.setTitle("Tworzenie tabeli");
             dialog.setHeaderText("Tworzenie tabeli");
@@ -189,6 +227,9 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
     }
 
     public void showOpenFileDialog() {
+        if (isTableOpen) {
+            clearTableDialog();
+        }
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Otwórz plik");
         fileChooser.getExtensionFilters().addAll(
@@ -214,6 +255,7 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
         }
     }
 
+    @Timer
     public void openFile(File file) {
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
@@ -237,6 +279,7 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
         }
     }
 
+    @Timer
     public void saveFile(File file) {
         try {
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file));
@@ -278,6 +321,8 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
         for (ObservableList<String> list : data) {
             dataTableView.getItems().add(list);
         }
+
+        isTableOpen = true;
 
         System.out.println(dataTableView.getItems());
     }

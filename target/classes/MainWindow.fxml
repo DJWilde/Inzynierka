@@ -59,6 +59,7 @@
                               <Button fx:id="editDataButton" mnemonicParsing="false" text="Edytor tabel" />
                               <Button fx:id="newCollectionButton" mnemonicParsing="false" text="Nowa kolekcja" />
                               <Button fx:id="loadCollectionButton" mnemonicParsing="false" text="Wczytaj kolekcję" />
+                              <Button fx:id="connectToNetworkButton" mnemonicParsing="false" text="Dysk internetowy" />
                           </items>
                         </ToolBar>
                      </children>
@@ -70,6 +71,11 @@
                       <Tab text="Twoje kolekcje">
                            <content>
                               <TreeView fx:id="collectionsTreeView" prefHeight="200.0" prefWidth="200.0" />
+                           </content>
+                        </Tab>
+                        <Tab text="Kolekcje internetowe">
+                           <content>
+                              <TreeView prefHeight="200.0" prefWidth="200.0" />
                            </content>
                         </Tab>
                     </tabs>
