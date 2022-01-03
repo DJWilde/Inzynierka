@@ -35,7 +35,9 @@ public class LogHelper {
     public void log(String output) {
         outputText.append("[ ").append(Instant.now().atZone(ZoneId.systemDefault())).append(" ] ").append(output).append("\n");
         try {
+            setLogFile(logFile);
             bufferedWriter.append(outputText.toString());
+            bufferedWriter.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

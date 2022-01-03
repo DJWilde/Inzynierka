@@ -88,7 +88,7 @@ public class MainController {
 
         closeAppMenu.setOnAction(actionEvent -> System.exit(0));
 
-        File logFile = new File("log/" + Instant.now() + "-log.txt");
+        File logFile = new File("log/sss.txt");
         logHelper.setLogFile(logFile);
 
         logHelper.log("Uruchamianie zasobów aplikacji...");
@@ -175,7 +175,7 @@ public class MainController {
                 alert.showAndWait();
                 Tab tab = new Tab(s);
                 tabPane.getTabs().add(tab);
-                logHelper.appendOutputText(outputTextArea,"Pomyślnie utworzono nowy katalog na dysku...");
+                logHelper.log("Pomyślnie utworzono nowy katalog na dysku.");
             } else {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Błąd");
