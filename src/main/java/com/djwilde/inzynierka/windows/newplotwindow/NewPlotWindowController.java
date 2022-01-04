@@ -1,6 +1,7 @@
 package com.djwilde.inzynierka.windows.newplotwindow;
 
 import com.djwilde.inzynierka.config.GnuplotConstants;
+import com.djwilde.inzynierka.windows.WindowController;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -12,10 +13,11 @@ import javafx.scene.layout.VBox;
 import javafx.util.Pair;
 import org.fxmisc.richtext.CodeArea;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class NewPlotWindowController {
+public class NewPlotWindowController implements WindowController {
     @FXML
     private BorderPane newPlotBorderPane;
 
@@ -166,5 +168,15 @@ public class NewPlotWindowController {
 
         Optional<String> result = generateNewCommandDialogBox.showAndWait();
         result.ifPresent(System.out::println);
+    }
+
+    @Override
+    public void openFile(File file) {
+
+    }
+
+    @Override
+    public void saveFile(File file) {
+
     }
 }

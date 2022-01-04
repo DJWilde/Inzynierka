@@ -140,6 +140,7 @@ public class MainController {
     }
 
     public void openWindow(String filename, File file) {
+        System.out.println(getClass().getResource(filename));
         FXMLLoader loader = new FXMLLoader(getClass().getResource(filename));
         try {
             Stage stage = loader.load();
@@ -152,7 +153,7 @@ public class MainController {
             }
             stage.show();
         } catch (IOException e) {
-            logHelper.log("Wystąpił błąd: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -331,15 +332,16 @@ public class MainController {
             internetConnector = connectorCommand.createConnector(service);
             internetConnector.initialize();
             isConnected = true;
-            List<com.google.api.services.drive.model.File> files = null;
-            try {
-                files = (List<com.google.api.services.drive.model.File>) internetConnector.getRootFolders();
-            } catch (IOException e) {
-                logHelper.log("Wystąpił błąd: " + e.getMessage());
-            }
-            for (com.google.api.services.drive.model.File file : files) {
-                logHelper.log( "Folder ID: " + file.getId() + "; folder name: " + file.getName());
-            }
+//            List<com.google.api.services.drive.model.File> files = null;
+//            try {
+//                files = (List<com.google.api.services.drive.model.File>) internetConnector.getRootFolders();
+//                openWindow("/NetworkDownloadDialog.fxml", null);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            for (com.google.api.services.drive.model.File file : files) {
+//                logHelper.log( "Folder ID: " + file.getId() + "; folder name: " + file.getName());
+//            }
         });
     }
 

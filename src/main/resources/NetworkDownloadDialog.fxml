@@ -5,40 +5,49 @@
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.DialogPane?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<DialogPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="480.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.djwilde.inzynierka.windows.networkdownloadwindow.NetworkDownloadWindowController">
-    <header>
-      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="102.0" prefWidth="480.0">
-         <children>
-            <Label layoutX="14.0" layoutY="22.0" text="Wybierz katalog">
-               <font>
-                  <Font size="20.0" />
-               </font>
-            </Label>
-            <Label layoutX="14.0" layoutY="52.0" text="Wybierz katalog który ma być wczytany i dodany do kolekcji:" />
-         </children></AnchorPane>
-    </header>
-   <content>
-      <VBox prefHeight="200.0" prefWidth="100.0">
-         <padding>
-            <Insets bottom="10.0" left="10.0" right="10.0" top="5.0" />
-         </padding>
-         <children>
-            <TreeView fx:id="networkDirectoriesTreeView" prefHeight="200.0" prefWidth="200.0" />
-            <ButtonBar prefHeight="40.0" prefWidth="200.0">
-              <buttons>
-                <Button fx:id="downloadButton" mnemonicParsing="false" text="Wczytaj" />
-                  <Button fx:id="cancelButton" mnemonicParsing="false" text="Anuluj" />
-              </buttons>
-               <VBox.margin>
-                  <Insets top="10.0" />
-               </VBox.margin>
-            </ButtonBar>
-         </children>
-      </VBox>
-   </content>
-</DialogPane>
+<?import javafx.scene.Scene?>
+<?import javafx.stage.Stage?>
+
+<Stage xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.djwilde.inzynierka.windows.networkdownloadwindow.NetworkDownloadWindowController">
+    <scene>
+        <Scene>
+            <DialogPane fx:id="networkDownloadDialogPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="480.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1">
+                <header>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="102.0" prefWidth="480.0">
+                     <children>
+                        <Label layoutX="14.0" layoutY="22.0" text="Wybierz katalog">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <Label layoutX="14.0" layoutY="52.0" text="Wybierz katalog który ma być wczytany i dodany do kolekcji:" />
+                     </children></AnchorPane>
+                </header>
+               <content>
+                  <VBox prefHeight="200.0" prefWidth="100.0">
+                     <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="5.0" />
+                     </padding>
+                     <children>
+                        <ListView fx:id="folderListView" prefHeight="200.0" prefWidth="200.0" />
+                        <ButtonBar prefHeight="40.0" prefWidth="200.0">
+                          <buttons>
+                            <Button fx:id="downloadButton" mnemonicParsing="false" text="Wczytaj" />
+                              <Button fx:id="cancelButton" mnemonicParsing="false" text="Anuluj" />
+                          </buttons>
+                           <VBox.margin>
+                              <Insets top="10.0" />
+                           </VBox.margin>
+                        </ButtonBar>
+                     </children>
+                  </VBox>
+               </content>
+            </DialogPane>
+        </Scene>
+    </scene>
+</Stage>
