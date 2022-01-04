@@ -1,6 +1,7 @@
 package com.djwilde.inzynierka.windows.scripteditorwindow;
 
 import com.djwilde.inzynierka.helpers.FileDialogInputOutput;
+import com.djwilde.inzynierka.helpers.LogHelper;
 import com.djwilde.inzynierka.helpers.ScriptHelper;
 import com.djwilde.inzynierka.helpers.Timer;
 import com.djwilde.inzynierka.windows.WindowController;
@@ -80,6 +81,8 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
     private Clipboard systemClipboard;
 
     private boolean isScriptOpen = false;
+
+    private LogHelper logHelper = LogHelper.getInstance();
 
     public void initialize() {
         KeyCombination newScriptShortcut = new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN);
@@ -182,7 +185,6 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
         File scriptFile = fileChooser.showOpenDialog(scriptBorderPane.getScene().getWindow());
         if (scriptFile != null) {
             openFile(scriptFile);
-            System.out.println("Wczytano");
         }
         isScriptOpen = true;
     }
@@ -198,7 +200,6 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
         File scriptFile = fileChooser.showSaveDialog(scriptBorderPane.getScene().getWindow());
         if (scriptFile != null) {
             saveFile(scriptFile);
-            System.out.println("Zapisano");
         }
     }
 
@@ -256,6 +257,7 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
 
     @Timer
     public void executeScript() {
+        logHelper.log("Generowanie wykresu...");
         CompletableFuture<Void> runScriptFuture = CompletableFuture.runAsync(() -> saveFile(new File("test.plt"))).thenRunAsync(() -> {
             System.out.println("Zapisano skrypt");
             ScriptHelper.executeScriptFromAnotherProcess("test.plt");
@@ -264,7 +266,7 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
         CompletableFuture<Void> completableFuture = CompletableFuture.allOf(runScriptFuture);
 
         completableFuture.join();
-        System.out.println("Ukończono");
+        logHelper.log("Wygenerowano wykres.");
     }
 
     private String getSelectedText() {
@@ -273,6 +275,7 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
 
     @Timer
     public void openFile(File file) {
+        logHelper.log("Otwieranie pliku " + file.getName());
         StringBuilder code = new StringBuilder();
         try {
             Scanner scanner = new Scanner(file);
@@ -284,10 +287,13 @@ public class ScriptEditorWindowController implements FileDialogInputOutput, Wind
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        logHelper.log("Otwarto plik " + file.getName());
     }
 
     @Timer
     public void saveFile(File file) {
+        logHelper.log("Zapisywanie do pliku " + file.getName());
         ScriptHelper.saveScript(file, scriptCodeArea.getText());
+        logHelper.log("Zapisano do pliku " + file.getName());
     }
 }

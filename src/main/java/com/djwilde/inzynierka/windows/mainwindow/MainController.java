@@ -109,15 +109,15 @@ public class MainController {
         result.ifPresent(text -> {
             if (!text.equals("")) {
                 Thread gnuplotThread = new Thread(new LaunchGnuplotThread(text));
-                logHelper.appendOutputText(outputTextArea, "Uruchamianie gnuplota...");
-                logHelper.appendOutputText(outputTextArea,"Generowanie wykresu...");
+                logHelper.log( "Uruchamianie gnuplota...");
+                logHelper.log("Generowanie wykresu...");
                 gnuplotThread.start();
                 try {
                     gnuplotThread.join();
-                    logHelper.appendOutputText(outputTextArea,"Wykres wygenerowano pomyślnie.");
+                    logHelper.log("Wykres wygenerowano pomyślnie.");
                 } catch (InterruptedException e) {
-                    logHelper.appendOutputText(outputTextArea,"Wystąpił błąd w trakcie generowania wykresu. Przerwano wykonanie zadania." + e.getMessage());
-                    e.printStackTrace();
+                    logHelper.log("Wystąpił błąd w trakcie generowania wykresu. Przerwano wykonanie zadania." + e.getMessage());
+                    logHelper.log("Wystąpił błąd: " + e.getMessage());
                 }
             } else {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -129,13 +129,13 @@ public class MainController {
             }
         });
         Thread loadPictureThread = new Thread(new LoadPictureThread("test.png", plotImageView));
-        logHelper.appendOutputText(outputTextArea,"Wczytywanie gotowego wykresu...");
+        logHelper.log("Wczytywanie gotowego wykresu...");
         loadPictureThread.start();
         try {
             loadPictureThread.join();
-            logHelper.appendOutputText(outputTextArea,"Wyświetlanie wykresu...");
+            logHelper.log("Wyświetlanie wykresu...");
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logHelper.log("Wystąpił błąd: " + e.getMessage());
         }
     }
 
@@ -152,7 +152,7 @@ public class MainController {
             }
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            logHelper.log("Wystąpił błąd: " + e.getMessage());
         }
     }
 
@@ -164,7 +164,7 @@ public class MainController {
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(s -> {
-            logHelper.appendOutputText(outputTextArea,"Tworzenie nowej kolekcji...");
+            logHelper.log("Tworzenie nowej kolekcji...");
             File newDir = new File(s);
             boolean dirCreated = newDir.mkdir();
             if (dirCreated) {
@@ -182,7 +182,7 @@ public class MainController {
                 alert.setHeaderText("Błąd");
                 alert.setContentText("Wystąpił błąd podczas tworzenia kolekcji.");
                 alert.showAndWait();
-                logHelper.appendOutputText(outputTextArea,"Wystąpił błąd podczas tworzenia kolekcji.");
+                logHelper.log("Wystąpił błąd podczas tworzenia kolekcji.");
             }
         });
     }
@@ -194,7 +194,7 @@ public class MainController {
             if (tabPane.getTabs().get(0).getText().equals("Twoje kolekcje")) {
                 tabPane.getTabs().remove(0);
             }
-            logHelper.appendOutputText(outputTextArea,"Wczytywanie kolekcji...");
+            logHelper.log("Wczytywanie kolekcji...");
             Tab tab = new Tab(selectedDir.getName());
             TreeView<String> tabTreeView = new TreeView<>();
             tabPane.getTabs().add(tab);
@@ -204,24 +204,24 @@ public class MainController {
                 if (mouseEvent.getClickCount() == 2 && mouseEvent.getButton() == MouseButton.PRIMARY) {
                     TreeItem<String> item = tabTreeView.getSelectionModel().getSelectedItem();
                     if (FilenameUtils.getExtension(item.getValue()).equals("png") || FilenameUtils.getExtension(item.getValue()).equals("jpg")) {
-                        logHelper.appendOutputText(outputTextArea,"Wczytywanie pliku " + item.getValue() + " z kolekcji " + selectedDir.getName() + "...");
+                        logHelper.log("Wczytywanie pliku " + item.getValue() + " z kolekcji " + selectedDir.getName() + "...");
                         System.out.println(getAbsolutePathFromTreeView(item.getValue()));
                         Thread loadPictureThread = new Thread(new LoadPictureThread(getAbsolutePathFromTreeView(item.getValue()), plotImageView));
                         loadPictureThread.start();
                         try {
                             loadPictureThread.join();
-                            logHelper.appendOutputText(outputTextArea,"Pomyślnie wczytano plik " + item.getValue() + ".");
+                            logHelper.log("Pomyślnie wczytano plik " + item.getValue() + ".");
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            logHelper.log("Wystąpił błąd: " + e.getMessage());
                         }
                     } else if (FilenameUtils.getExtension(item.getValue()).equals("plt")) {
-                        logHelper.appendOutputText(outputTextArea,"Wczytywanie skryptu " + item.getValue() + " z kolekcji " + selectedDir.getName() + "...");
+                        logHelper.log("Wczytywanie skryptu " + item.getValue() + " z kolekcji " + selectedDir.getName() + "...");
                         openWindow("/ScriptEditorWindow.fxml", new File(getAbsolutePathFromTreeView(item.getValue())));
-                        logHelper.appendOutputText(outputTextArea,"Pomyślnie wczytano plik " + item.getValue());
+                        logHelper.log("Pomyślnie wczytano plik " + item.getValue());
                     } else if (FilenameUtils.getExtension(item.getValue()).equals("txt")) {
-                        logHelper.appendOutputText(outputTextArea,"Wczytywanie danych z pliku " + item.getValue() + " z kolekcji " + selectedDir.getName() + "...");
+                        logHelper.log("Wczytywanie danych z pliku " + item.getValue() + " z kolekcji " + selectedDir.getName() + "...");
                         openWindow("/TableEditorWindow.fxml", new File(getAbsolutePathFromTreeView(item.getValue())));
-                        logHelper.appendOutputText(outputTextArea,"Pomyślnie wczytano plik " + item.getValue());
+                        logHelper.log("Pomyślnie wczytano plik " + item.getValue());
                     }
                 } else if (mouseEvent.getButton() == MouseButton.SECONDARY) {
                     ContextMenu contextMenu = new ContextMenu();
@@ -231,7 +231,7 @@ public class MainController {
                     deleteFileMenuItem.setOnAction(actionEvent -> {
                         TreeItem<String> fileToBeDeleted = tabTreeView.getSelectionModel().getSelectedItem();
                         File file = new File(getAbsolutePathFromTreeView(fileToBeDeleted.getValue()));
-                        logHelper.appendOutputText(outputTextArea,"Usuwanie pliku " + fileToBeDeleted.getValue() + " z kolekcji " + selectedDir.getName());
+                        logHelper.log("Usuwanie pliku " + fileToBeDeleted.getValue() + " z kolekcji " + selectedDir.getName());
                         if (file.delete()) {
                             Alert alert = new Alert(Alert.AlertType.INFORMATION);
                             alert.setTitle("Powiadomienie");
@@ -239,7 +239,7 @@ public class MainController {
                             alert.setContentText("Pomyślnie usunięto plik.");
                             alert.showAndWait();
 
-                            logHelper.appendOutputText(outputTextArea,"Usunięto plik " + fileToBeDeleted.getValue());
+                            logHelper.log("Usunięto plik " + fileToBeDeleted.getValue());
                             tabTreeView.getRoot().getChildren().remove(fileToBeDeleted);
                             filePaths.remove(file.getAbsolutePath());
                         } else {
@@ -248,7 +248,7 @@ public class MainController {
                             alert.setHeaderText("Błąd");
                             alert.setContentText("Wystąpił błąd podczas usuwania pliku.");
                             alert.showAndWait();
-                            logHelper.appendOutputText(outputTextArea,"Wystąpił błąd podczas usuwania pliku.");
+                            logHelper.log("Wystąpił błąd podczas usuwania pliku.");
                         }
                     });
 
@@ -263,7 +263,7 @@ public class MainController {
             for (File file : selectedDir.listFiles()) {
                 createTree(file, treeItem);
                 filePaths.add(file.getAbsolutePath());
-                logHelper.appendOutputText(outputTextArea,"Wczytano plik " + file.getName() + " do kolekcji " + selectedDir.getName());
+                logHelper.log("Wczytano plik " + file.getName() + " do kolekcji " + selectedDir.getName());
                 System.out.println(file.getAbsolutePath());
             }
 
@@ -284,7 +284,7 @@ public class MainController {
                             TreeItem<String> newFile = new TreeItem<>(newFilename);
                             tabTreeView.getRoot().getChildren().add(newFile);
                             Path destination = Paths.get(selectedDir.getAbsolutePath() + "\\" + file.getName());
-                            logHelper.appendOutputText(outputTextArea,"Dodano plik " + newFilename + " do kolekcji.");
+                            logHelper.log("Dodano plik " + newFilename + " do kolekcji.");
                             filePaths.add(destination.toString());
                         }
                         if (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
@@ -297,12 +297,12 @@ public class MainController {
                         }
                     }
                 } catch (IOException | InterruptedException e) {
-                    e.printStackTrace();
+                    logHelper.log("Wystąpił błąd: " + e.getMessage());
                 }
             };
 
             new Thread(watchChangeDirectory).start();
-            logHelper.appendOutputText(outputTextArea,"Pomyślnie wczytano kolekcję " + selectedDir.getName());
+            logHelper.log("Pomyślnie wczytano kolekcję " + selectedDir.getName());
         }
     }
 
@@ -311,7 +311,7 @@ public class MainController {
 //        googleDriveConnector.initialize();
 //        List<com.google.api.services.drive.model.File> driveFiles = googleDriveConnector.getRootFolderByName("Documents");
 //        for (com.google.api.services.drive.model.File file : driveFiles) {
-//            logHelper.appendOutputText(outputTextArea, "Folder ID: " + file.getId() + "; folder name: " + file.getName());
+//            logHelper.log( "Folder ID: " + file.getId() + "; folder name: " + file.getName());
 //        }
 //    }
 
@@ -335,10 +335,10 @@ public class MainController {
             try {
                 files = (List<com.google.api.services.drive.model.File>) internetConnector.getRootFolders();
             } catch (IOException e) {
-                e.printStackTrace();
+                logHelper.log("Wystąpił błąd: " + e.getMessage());
             }
             for (com.google.api.services.drive.model.File file : files) {
-                logHelper.appendOutputText(outputTextArea, "Folder ID: " + file.getId() + "; folder name: " + file.getName());
+                logHelper.log( "Folder ID: " + file.getId() + "; folder name: " + file.getName());
             }
         });
     }

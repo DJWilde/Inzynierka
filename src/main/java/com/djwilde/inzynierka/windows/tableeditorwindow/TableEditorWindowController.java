@@ -44,8 +44,6 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
     public void initialize() {
         if (LoadedData.getInstance().getLoadedData().size() == 0) {
             dataTableView.setPlaceholder(new Label("Brak danych"));
-        } else {
-//            displayLoadedData();
         }
 
         dataTableView.setEditable(true);
@@ -55,6 +53,8 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
         addNewRowButton.setOnAction(actionEvent -> addRow());
         loadDataButton.setOnAction(actionEvent -> showOpenFileDialog());
         saveDataButton.setOnAction(actionEvent -> showSaveFileDialog());
+
+        logHelper.log("Otwarto edytor tabel");
     }
 
     public void createTable() {
@@ -126,6 +126,7 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
 
         Optional<Pair<String, String>> result = createTableDialog.showAndWait();
         result.ifPresent(pair -> {
+            logHelper.log("Tworzenie nowej tabeli...");
             for (int i = 0; i < Integer.parseInt(noOfRows.getText()); i++) {
                 ObservableList<String> tableRow = FXCollections.observableArrayList();
                 for (int j = 0; j < Integer.parseInt(noOfColumns.getText()); j++) {
@@ -150,6 +151,7 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
             }
 
             isTableOpen = true;
+            logHelper.log("Utworzono nową tabelę.");
         });
     }
 
@@ -173,15 +175,14 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
                 column.setOnEditCommit(observableListStringCellEditEvent -> {
                     ObservableList<String> row = observableListStringCellEditEvent.getRowValue();
                     String newValue = observableListStringCellEditEvent.getNewValue();
-                    System.out.println(dataTableView.getColumns().size());
                     row.set(0, newValue);
-                    System.out.println(data);
                 });
                 dataTableView.getColumns().add(column);
                 for (ObservableList<String> list : data) {
                     dataTableView.getItems().add(list);
                 }
-                System.out.println(data);
+
+                logHelper.log("Utworzono nową tabelę");
             });
         } else {
             TextInputDialog dialog = new TextInputDialog();
@@ -206,6 +207,8 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
                 });
                 dataTableView.getColumns().add(newColumn);
             });
+
+            logHelper.log("Dodano nową kolumnę...");
         }
     }
 
@@ -257,6 +260,7 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
 
     @Timer
     public void openFile(File file) {
+        logHelper.log("Otwieranie pliku " + file.getName() + "...");
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
             String line;
@@ -274,13 +278,15 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
             System.out.println(data);
             br.close();
             displayLoadedData();
+            logHelper.log("Otwarto plik " + file.getName() + ".");
         } catch (IOException e) {
-            e.printStackTrace();
+            logHelper.log("Wystąpił błąd: " + e.getMessage());
         }
     }
 
     @Timer
     public void saveFile(File file) {
+        logHelper.log("Otwieranie pliku " + file.getName() + "...");
         try {
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file));
             ObservableList<TableColumn<ObservableList<String>, ?>> tableNames = dataTableView.getColumns();
@@ -298,8 +304,9 @@ public class TableEditorWindowController implements FileDialogInputOutput, Windo
             }
 
             bufferedWriter.close();
+            logHelper.log("Zapisano plik " + file.getName() + ".");
         } catch (IOException e) {
-            e.printStackTrace();
+            logHelper.log("Wystąpił błąd: " + e.getMessage());
         }
     }
 
